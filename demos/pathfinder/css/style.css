@@ -1,0 +1,143 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Verdana, Geneva, sans-serif;
+  background-color: #eee;
+}
+
+#main {
+  position: relative;
+  margin: 0 auto;
+  -webkit-transform: scale(.9,.9);
+          transform: scale(.9,.9);
+}
+
+#main .btn {
+  position: absolute;
+  min-width: 100px;
+  margin-left: 60px;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #aaa;
+  color: #eee;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#main .btn.disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
+
+#main .refresh {
+  top: 0;
+}
+
+#main .find-path {
+  top: 50px;
+}
+
+#main .message {
+  position: absolute;
+  margin-top: 40px;
+  padding: 10px 15px;
+  color: #E24C4F;
+}
+
+.container {
+  float: left;
+  display: flex;
+  flex-flow: row wrap;
+  background-color: #eee;
+  border: 2px dashed #ccc;
+  padding: 10px;
+  margin-top: 15px;
+  margin-left: 15px;
+}
+
+.cell {
+  box-sizing: border-box;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  padding: 1px;
+  background-color: #eee;
+  background-clip: content-box;
+}
+
+.cell.begin, .cell.end, .cell.obstacle { opacity: 0; -webkit-transform: scale(0,0); }
+.cell.obstacle { background-color: #aaa; }
+
+.cell::before, .cell::after {
+  content: '';
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  left: 1px;
+  top: 1px;
+  color: #eee;
+  text-align: center;
+  line-height: 28px;
+  transition: background-color 200ms;
+}
+
+.cell.road::after { background-color: #eee; }
+.cell.begin::after { content: '起'; background-color: darkgreen; border-radius: 3px; }
+.cell.end::after { content: '终'; background-color: darkgreen; border-radius: 3px;}
+.cell.begin.ko::after, .cell.end.ko::after { background-color: #E24C4F; }
+
+.cell.wipe-left::before, .cell.wipe-up::before { background-color: #E24C4F; }
+
+.wipe-left::after, .wipe-right::after, .wipe-up::after, .wipe-down::after {
+  -webkit-animation-duration: 200ms;
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-delay: 0;
+  -webkit-animation-iteration-count: 1;
+  -webkit-animation-direction: normal;
+  -webkit-animation-fill-mode: forwards;
+}
+
+.cell.wipe-left::after { -webkit-animation-name: wipe-left; }
+.cell.wipe-right::after { background-color: #E24C4F; -webkit-animation-name: wipe-right; }
+.cell.wipe-up::after { -webkit-animation-name: wipe-up; }
+.cell.wipe-down::after { background-color: #E24C4F; -webkit-animation-name: wipe-down; }
+
+@-webkit-keyframes wipe-left { from { width: 28px; } to { width: 0; } }
+@-webkit-keyframes wipe-right { from { width: 0; } to { width: 28px; } }
+@-webkit-keyframes wipe-up { from { height: 28px; } to { height: 0; } }
+@-webkit-keyframes wipe-down { from { height: 0; } to { height: 28px; } }
+
+.cell.blow-up {
+  -webkit-animation-name: blow-up;
+  -webkit-animation-duration: 200ms;
+  -webkit-animation-timing-function: ease-out;
+  -webkit-animation-delay: 0;
+  -webkit-animation-iteration-count: 1;
+  -webkit-animation-direction: normal;
+  -webkit-animation-fill-mode: forwards;
+}
+
+.cell.work-out {
+  z-index: 999;
+}
+
+.cell.work-out::after {
+  -webkit-animation-name: work-out;
+  -webkit-animation-duration: 200ms;
+  -webkit-animation-timing-function: ease-out;
+  -webkit-animation-delay: 0;
+  -webkit-animation-iteration-count: 2;
+  -webkit-animation-direction: normal;
+  -webkit-animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes blow-up {
+  to { opacity: 1; -webkit-transform: scale(1,1); }
+}
+
+@-webkit-keyframes work-out {
+  50% { -webkit-transform: scale(1.6, 1.6); }
+  100% { -webkit-transform: scale(1.2, 1.2); }
+}
+
