@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>1标签</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rect {
+    background-color: #E24C4F;
+    width: 50px;
+    height: 150px;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%,-50%);
+       -moz-transform: translate(-50%,-50%);
+            transform: translate(-50%,-50%);
+  }
+
+  .rect::before, .rect::after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 50px;
+    background-color: #E24C4F;
+  }
+
+  .rect::before {
+    left: -50px;
+  }
+
+  .rect::after {
+    left: 50px;
+  }
+  </style>
+</head>
+<body>
+<div class="rect"></div>
+</body>
+</html>

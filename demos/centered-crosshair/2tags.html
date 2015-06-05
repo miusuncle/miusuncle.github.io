@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2标签</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: column;
+            flex-flow: column;
+    -webkit-justify-content: center;
+            justify-content: center;
+    -webkit-align-items: center;
+            align-items: center;
+  }
+
+  .outer, .inner {
+    width: 150px;
+    height: 50px;
+    background-color: #E24C4F;
+  }
+
+  .inner {
+    -webkit-transform-origin: 50% 50%;
+       -moz-transform-origin: 50% 50%;
+            transform-origin: 50% 50%;
+    -webkit-transform: rotate(90deg);
+       -moz-transform: rotate(90deg);
+            transform: rotate(90deg);
+  }
+  </style>
+</head>
+<body>
+<div class="outer">
+  <div class="inner"></div>
+</div>
+</body>
+</html>

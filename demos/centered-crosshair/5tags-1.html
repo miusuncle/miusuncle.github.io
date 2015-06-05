@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>5标签 - 1</title>
+  <style>
+  .box {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: #E24C4F;
+  }
+
+  .box:only-child {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    margin-left: -75px;
+    margin-top: -75px;
+    padding: 50px;
+    background-clip: content-box;
+  }
+
+  .box .box:first-child {
+    top: 0;
+    left: 50px;
+  }
+
+  .box .box:nth-child(2) {
+    top: 50px;
+    right: 0;
+  }
+
+  .box .box:nth-child(3) {
+    left: 50px;
+    bottom: 0;
+  }
+
+  .box .box:last-child {
+    left: 0;
+    top: 50px;
+  }
+
+
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="box"></div>
+  <div class="box"></div>
+  <div class="box"></div>
+  <div class="box"></div>
+</div>
+</body>
+</html>

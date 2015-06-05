@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>1标签 - canvas</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  </style>
+<body>
+<script>
+var hasdraw = false;
+  function draw() {
+    var body = document.body;
+
+    var canvas = (
+      body.querySelector('canvas') ||
+      body.appendChild(document.createElement('canvas'))
+    );
+
+    var rects = body.getBoundingClientRect();
+    canvas.width = rects.width;
+    canvas.height = rects.height;
+
+    drawCrosshair(canvas);
+  }
+
+  function drawCrosshair(canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var transX = Math.round(canvas.width / 2 - 75);
+    var transY = Math.round(canvas.height / 2 - 75);
+    ctx.translate(transX, transY);
+
+    var points = [
+      [0, 50], [50, 50], [50, 0], [100, 0],
+      [100, 50], [150, 50], [150, 100], [100, 100],
+      [100, 150], [50, 150], [50, 100], [0, 100]
+    ];
+
+    ctx.beginPath();
+    points.forEach(function (p) {
+      ctx.lineTo.apply(ctx, p);
+    });
+    ctx.closePath();
+
+    ctx.fillStyle = '#E24C4F';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  window.addEventListener('resize', function _() {
+    return _._ || (_._ = setTimeout(function () {
+      _._ = !!draw();
+    }, 200) && _);
+  }());
+</script>
+</body>
+</html>

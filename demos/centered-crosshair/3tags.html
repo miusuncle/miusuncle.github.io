@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3标签</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  html {
+    display: table;
+  }
+
+  body {
+    display: table-cell;
+    vertical-align: middle;
+    font-size: 0;
+  }
+
+  div {
+    background-color: #E24C4F;
+  }
+
+  .rect {
+    position: relative;
+    width: 150px;
+    height: 50px;
+    margin: 0 auto;
+  }
+
+  .up, .down {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50px;
+  }
+
+  .up {
+    bottom: 50px;
+  }
+
+  .down {
+    top: 50px;
+  }
+  </style>
+</head>
+<body>
+<div class="rect">
+  <div class="up"></div>
+  <div class="down"></div>
+</div>
+</body>
+</html>
