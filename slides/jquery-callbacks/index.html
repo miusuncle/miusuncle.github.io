@@ -1,0 +1,511 @@
+<!--
+    Powered By nodePPT - This is probably the best web presentation tool so far!
+    version: 1.2.2
+    site: https://github.com/ksky521/nodePPT
+-->
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery.Callbacks分析</title>
+    <link rel="stylesheet" media="all" href="./css/nodeppt.css">
+    <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="./css/phone.css">
+    <link rel="stylesheet" media="print" href="./css/pdf.css">
+    <link rel="stylesheet" href="./js/highlight/styles/monokai_sublime.css">
+    <link rel="stylesheet" href="./css/font-awesome.css">
+
+</head>
+<body>
+<div class="slides">
+    <slides id="container">
+    	<slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h1>jQuery.Callbacks</h1> 
+	       <h2>回调函数队列</h2> 
+	       <p><small style="vertical-align:middle;display:inline-block"></small> </p> 
+	      </article>
+	     </section>
+	    </slide> 
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      	<hgroup>
+				<h2>javascript常见回调</h2>
+			</hgroup>
+			<article>
+				<ul class="rollIn">
+					<li class="builded" data-index="0">ajax、jsonp</li>
+					<li class="builded" data-index="1">onload、domReady</li>
+					<li class="building" data-index="2">setTimeout、setInterval</li>
+				</ul>
+			</article>
+	     </section>
+	    </slide>
+
+	   	<slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>曾经一个案例</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">//获取用户信息方法
+function getUserInfo(callback) {
+  $.ajax({
+    success : function(data) {
+      callback(data);
+    }
+  })
+}
+
+getUserInfo(func1); //A模块调用了一次
+getUserInfo(func2); //B模块调用了一次
+			    </code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+ 
+		<slide class="slide">
+	    	<section class="slide-wrapper">
+	    		<hgroup>
+					<h2>这样写肯定会被鄙视</h2>
+				</hgroup>
+				<article>
+					<p><img src="img/2.jpg"></p>
+				</article>
+			</section>
+		</slide>
+
+		<slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>初步改造</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">//获取用户信息方法
+var cacheData;
+function getUserInfo(callback) {
+  if(cacheData) {
+    callback(cacheData);
+    return;
+  }
+  $.ajax({
+    success : function(data) {
+      callback(cacheData = data);
+    }
+  })
+}
+
+getUserInfo(func1); //A模块调用了一次
+getUserInfo(func2); //B模块调用了一次
+			    </code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>接着改造</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">//获取用户信息方法
+var cacheData,
+    callList = [],
+    requested = false;
+
+function getUserInfo(callback) {
+  if(cacheData) {
+    callback(cacheData);
+    return;
+  }
+
+  callList.push(callback);
+  if(requested) {
+   return;
+  }
+  requested = true;
+  $.ajax({
+    success : function(data) {
+      cacheData = data;
+      for(var n = 0; n < callList.length; n++) {
+      	callList[n](data);
+      }
+    }
+  })
+}
+
+getUserInfo(func1); //A模块调用了一次
+getUserInfo(func2); //B模块调用了一次
+			    </code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>$.Callbacks可以帮你管理回调队列</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">//获取用户信息方法
+var requested = false;
+var callbacks = $.Callbacks("once memory")
+function getUserInfo(callback) {
+  callbacks.add(callback);
+
+  if(requested) {
+   return;
+  }
+  requested = true;
+  $.ajax({
+    success : function(data) {
+      callbacks.fire(data);
+    }
+  })
+}
+
+getUserInfo(); //A模块调用了一次
+getUserInfo(); //B模块调用了一次
+			    </code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	       <hgroup> 
+	         <h2>Callbacks方法接受参数</h2> 
+	       </hgroup>
+	       <article>
+				<ul>
+					<li>once: 只触发一次回调队列</li>
+					<li>memory: 当事件触发后，之后add进来的回调就直接执行了，无需再手动调用一次fire方法</li>
+					<li>unique: 队列里边没有重复的回调</li>
+					<li>stopOnFalse: 当有一个回调返回是false的时候中断掉触发动作</li>
+				</ul>
+			</article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>假设有两个这样的函数</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">function fn1( value ) {
+  console.log( value );
+}
+ 
+function fn2( value ) {
+  console.log( "fn2 says: " + value );
+  return false;
+}</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>Callbacks方法没传参数时</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">var callbacks = $.Callbacks();
+callbacks.add( fn1 );
+ 
+// Outputs: foo!
+callbacks.fire( "foo!" );
+ 
+callbacks.add( fn2 );
+ 
+// Outputs: bar!, fn2 says: bar!
+callbacks.fire( "bar!" );
+
+callbacks.remove( fn2 );
+
+// Outputs: foobar!
+callbacks.fire( "foobar!" );</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>Callbacks方法传once参数</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">var callbacks = $.Callbacks( "once" );
+callbacks.add( fn1 );
+callbacks.fire( "foo" );
+callbacks.add( fn2 );
+callbacks.fire( "bar" );
+
+/*
+output:
+foo
+*/</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>Callbacks方法传memory参数</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">var callbacks = $.Callbacks( "memory" );
+callbacks.add( fn1 );
+callbacks.fire( "foo" );
+callbacks.add( fn2 );
+callbacks.fire( "bar" );
+callbacks.remove( fn2 );
+callbacks.fire( "foobar" );
+ 
+/*
+output:
+foo
+fn2 says:foo
+bar
+fn2 says:bar
+foobar
+*/</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>Callbacks方法传unique参数</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">var callbacks = $.Callbacks( "unique" );
+callbacks.add( fn1 );
+callbacks.fire( "foo" );
+callbacks.add( fn1 ); // Repeat addition
+callbacks.add( fn2 );
+callbacks.fire( "bar" );
+callbacks.remove( fn2 );
+callbacks.fire( "foobar" );
+ 
+/*
+output:
+foo
+bar
+fn2 says:bar
+foobar
+*/</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>Callbacks方法传stopOnFalse参数</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">function fn1( value ) {
+  console.log( value );
+  return false;
+}
+ 
+function fn2( value ) {
+  console.log( "fn2 says: " + value );
+  return false;
+}
+ 
+var callbacks = $.Callbacks( "stopOnFalse" );
+callbacks.add( fn1 );
+callbacks.fire( "foo" );
+callbacks.add( fn2 );
+callbacks.fire( "bar" );
+ 
+/*
+output:
+foo
+bar
+foobar
+*/</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>Callbacks方法传多个参数</h2> 
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">function fn1( value ) {
+  console.log( value );
+  return false;
+}
+ 
+function fn2( value ) {
+  console.log( "fn2 says: " + value );
+  return false;
+}
+ 
+var callbacks = $.Callbacks( "unique memory" );
+callbacks.add( fn1 );
+callbacks.fire( "foo" );
+callbacks.add( fn1 ); // Repeat addition
+callbacks.add( fn2 );
+callbacks.fire( "bar" );
+callbacks.add( fn2 );
+callbacks.fire( "baz" );
+callbacks.remove( fn2 );
+callbacks.fire( "foobar" );
+ 
+/*
+output:
+foo
+fn2 says:foo
+bar
+fn2 says:bar
+baz
+fn2 says:baz
+foobar
+*/</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h1>Callbacks内部主要为Deferred服务</h1> 
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>基于Deferred的domReady</h2>
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">$(document).ready(function(){console.log('ready 1')}); 
+$(document).ready(function(){console.log('ready 2')});
+ 
+/*
+output:
+ready 1
+ready 2
+*/</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	    <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>基于Deferred的ajax</h2>
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">$.ajax("test.html")
+.done(function(){ console.log("成功1"); });
+.done(function(){ console.log("成功2"); });
+
+/*
+output:
+成功1
+成功2
+*/
+</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+	     <slide class="slide">
+	     <section class="slide-wrapper">
+	      <article class="flexbox vcenter"> 
+	       <h2>getUserInfo最终改造</h2>
+	       <div class="columns-1" style="height:70%;overflow:auto">
+			    <pre><code class="javascript">var userInfo;
+funciton getUserInfo() {
+  return userInfo || userInfo =  $.ajax({...})
+}
+
+getUserInfo().done(func1);
+getUserInfo().done(func2);
+</code></pre>
+			</div>
+	      </article>
+	     </section>
+	    </slide>
+
+
+        <slide class="slide logoslide dark nobackground">
+            <article class="flexbox vcenter">
+              <h2 style="color: white;">Thank You！</h2>
+            </article>
+          </slide>
+        <div class="slideTip" id="tip"></div>
+    </slides>
+</div>
+<canvas id="drawBoard" class="draw-board" width="900" height="700"></canvas>
+<div class="progress"><span id="progress"></span></div>
+<div id="_buttons">
+    <div class="_btn-box" id="_btn-box" style="display:none;">
+        <button class="fa fa-arrow-circle-left" id="_btn-prev"></button>
+        <button class="fa fa-arrow-circle-right" id="_btn-next"></button>
+        <button class="fa fa-paint-brush" id="_btn-brush"></button>
+        <button class="fa fa-compress" id="_btn-overview" data-toggle="fa fa-expand"></button>
+    </div>
+    <button class="fa fa-bars" id="_btn-bar"  data-toggle="fa fa-close"></button>
+</div>
+<script src="./js/mixjs/lib/mix.0.3.0.min.js"></script>
+<script>
+var base = location.protocol + '//' + location.host;
+
+var path = location.pathname.split('/').filter(function(v){
+    return !!v;
+});
+path.pop();
+path = path.join('/');
+MixJS.config({
+    baseURL: [ base, path, 'js'].join('/')+'/'
+});
+
+</script>
+<script src="./js/mixjs/lib/event/broadcast.js"></script>
+<script src="./js/nodeppt.js"></script>
+<script>
+Slide.init({
+    containerID: 'container',
+    drawBoardID: 'drawBoard',
+    slideClass: '.slide',
+    buildClass: '.build',
+    progressID: 'progress',
+    transition: 'move',
+    width: 1100,
+    dir: './',
+
+    //打开下面的注释就开启postMessage方式
+    //访问网址127.0.0.1:8080/ppt/demo#client
+    control:{
+        type: 'postMessage',
+        args:{
+            isControl:  false
+        }
+    },
+
+    tipID: 'tip'
+});
+MixJS.loadJS('highlight/hljs-0.8.js',function(){
+    hljs.tabReplace = '  ';
+    hljs.initHighlightingOnLoad();
+});
+</script>
+<script src="./js/zoom.js"></script>
+<!--placeholder-->
+</body>
+</html>
