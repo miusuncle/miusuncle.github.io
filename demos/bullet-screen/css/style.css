@@ -1,0 +1,41 @@
+@charset "UTF-8";
+* { outline: none; }
+
+::-moz-selection { color: currentColor; background-color: #E24C4F; }
+
+::selection { color: currentColor; background-color: #E24C4F; }
+
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+
+body { background-color: #666; }
+
+body, button, input, select, textarea { color: #333; font: 14px/1.5 "微软雅黑", "Microsoft Yahei", "Hiragino Sans GB", tahoma, arial, "宋体"; }
+
+.container { -webkit-box-sizing: border-box; box-sizing: border-box; width: 320px; height: 480px; position: relative; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%); }
+
+.panel { -webkit-box-sizing: border-box; box-sizing: border-box; display: -webkit-box; display: -webkit-flex; display: -ms-flexbox; display: flex; -webkit-flex-flow: row nowrap; -ms-flex-flow: row nowrap; flex-flow: row nowrap; -webkit-box-pack: center; -webkit-justify-content: center; -ms-flex-pack: center; justify-content: center; -webkit-box-align: stretch; -webkit-align-items: stretch; -ms-flex-align: stretch; align-items: stretch; background-color: #363B3E; height: 60px; padding: 10px; }
+.panel input { -webkit-box-flex: 1; -webkit-flex: 1; -ms-flex: 1; flex: 1; border: none; -webkit-border-radius: 8px; border-radius: 8px; padding: 5px 10px; margin-right: 5px; color: #828585; background-color: #131716; font-size: 16px; }
+.panel input::-webkit-input-placeholder { color: #666; }
+.panel a { width: 50px; color: #aaa; text-decoration: none; text-align: center; line-height: 40px; font-size: 16px; }
+
+.bullets-outer { position: relative; -webkit-box-sizing: border-box; box-sizing: border-box; width: 320px; height: 420px; display: -webkit-box; display: -webkit-flex; display: -ms-flexbox; display: flex; -webkit-flex-flow: column-reverse nowrap; -ms-flex-flow: column-reverse nowrap; flex-flow: column-reverse nowrap; background-color: #46494B; padding: 10px; overflow: hidden; }
+.bullets-outer::after { position: absolute; content: ''; width: 100%; height: 10px; left: 0; top: 0; background-color: #46494B; }
+
+.bullets { -webkit-box-sizing: border-box; box-sizing: border-box; height: 9000px; display: -webkit-box; display: -webkit-flex; display: -ms-flexbox; display: flex; -webkit-box-flex: 0; -webkit-flex: 0 0 auto; -ms-flex: 0 0 auto; flex: 0 0 auto; -webkit-flex-flow: column-reverse nowrap; -ms-flex-flow: column-reverse nowrap; flex-flow: column-reverse nowrap; -webkit-box-pack: start; -webkit-justify-content: flex-start; -ms-flex-pack: start; justify-content: flex-start; -webkit-box-align: start; -webkit-align-items: flex-start; -ms-flex-align: start; align-items: flex-start; }
+
+.bullets .bullet { background-color: rgba(255, 255, 255, 0.15); min-width: 30px; min-height: 24px; margin-top: 8px; padding: 10px; -webkit-border-radius: 5px; border-radius: 5px; overflow: hidden; }
+
+.bullets .bullet > span { line-height: 24px; color: #ccc; word-wrap: break-word; word-break: break-all; }
+
+.bullets .bullet:first-child { position: relative; margin-bottom: 10px; overflow: visible; }
+.bullets .bullet:first-child::before, .bullets .bullet:first-child::after { position: absolute; content: ''; width: 0px; top: 100%; left: 15px; border-style: solid; }
+.bullets .bullet:first-child::before { border-width: 0 0 10px 14px; border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.15); }
+.bullets .bullet:first-child::after { border-width: 0 0 10px 2px; border-color: rgba(255, 255, 255, 0) #46494B; }
+
+.scale-up { -webkit-transform-origin: left bottom; -ms-transform-origin: left bottom; transform-origin: left bottom; -webkit-animation-name: scale-up; animation-name: scale-up; -webkit-animation-duration: 300ms; animation-duration: 300ms; -webkit-animation-timing-function: ease-out; animation-timing-function: ease-out; -webkit-animation-delay: 0; animation-delay: 0; -webkit-animation-iteration-count: 1; animation-iteration-count: 1; -webkit-animation-direction: normal; animation-direction: normal; -webkit-animation-fill-mode: forwards; animation-fill-mode: forwards; }
+
+@-webkit-keyframes scale-up { from { -webkit-transform: scale(0, 0); transform: scale(0, 0); }
+  to { -webkit-transform: scale(1, 1); transform: scale(1, 1); } }
+
+@keyframes scale-up { from { -webkit-transform: scale(0, 0); transform: scale(0, 0); }
+  to { -webkit-transform: scale(1, 1); transform: scale(1, 1); } }
