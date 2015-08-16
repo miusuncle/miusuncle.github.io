@@ -5,11 +5,11 @@ var $txtBullet = $('#txtBullet');
 var $cmdSend = $('#cmdSend');
 
 function sendBullet(text, delay) {
-	var tmpl = '<div class="bullet"><span>${0}</span></div>';
+	var tmpl = '<div class="bullet scale-up"><span>${0}</span></div>';
 	var bullet = vsub(tmpl, [text]);
 
 	schedule.join(function () {
-		$(bullet).prependTo($bullets).hide().show(DELAY, function () {
+		$(bullet).prependTo($bullets).hide().show(0&&DELAY, function () {
 			$(this).delay(3000).fadeOut(800).promise().done(function () {
 				$(this).remove();
 			});
@@ -25,7 +25,7 @@ $txtBullet.keyup(function (e) {
 
 $cmdSend.click(function () {
 	var text = $txtBullet.val();
-	if (!text) return;
+	// if (!text) return;
 	$txtBullet.val('');
 	sendBullet(text, DELAY);
 });
