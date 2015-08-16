@@ -25,12 +25,12 @@ $txtBullet.keyup(function (e) {
 
 $cmdSend.click(function () {
 	var text = $txtBullet.val();
-	// if (!text) return;
+	if (!text) return;
 	$txtBullet.val('');
 	sendBullet(text, DELAY);
 });
 
-var bullets = ['Almost Lover', '偶阵雨', '以后的以后', '流年啊 你奈我何'];
+var bullets = ['Almost Lover', '偶阵雨', '以后的以后', '流年啊 你奈我何', '人类吧，爱我吧，不要将我们屠杀'];
 
 bullets.forEach(function (bullet, index) {
 	sendBullet(bullet, index === 0 ? 0 : DELAY + random(500, 1000));

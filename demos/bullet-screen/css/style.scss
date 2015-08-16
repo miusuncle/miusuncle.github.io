@@ -29,8 +29,14 @@ body, button, input, select, textarea {
 
 .container {
 	box-sizing: border-box;
-	width: 320px;
-	height: 480px;
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: stretch;
+	width: 100%;
+	height: 100%;
+	max-width: 480px;
+	max-height: 720px;
 	position: relative;
 	left: 50%;
 	top: 50%;
@@ -63,7 +69,7 @@ body, button, input, select, textarea {
 	}
 
 	a {
-		width: 50px;
+		width: 60px;
 		color: #aaa;
 		text-decoration: none;
 		text-align: center;
@@ -75,8 +81,7 @@ body, button, input, select, textarea {
 .bullets-outer {
 	position: relative;
 	box-sizing: border-box;
-	width: 320px;
-	height: 420px;
+	flex: 1;
 	display: flex;
 	flex-flow: column-reverse nowrap;
 	background-color: $bullets-bg-color;
