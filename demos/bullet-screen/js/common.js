@@ -41,7 +41,38 @@ var schedule = (function (self) {
   return self;
 }(schedule || {}));
 
-function delay(ms) {
+var DeferredQueue = function () {
+  function DeferredQueue() {
+    var waiting = [];
+    var queue = [];
+
+    $.extend(this, {
+      push: function (item) {
+        if (waiting.length) {
+          waiting.shift().resolve(item);
+        } else {
+          queue.push(item);
+        }
+      },
+
+      pull: function () {
+        var dfd = $.Deferred();
+
+        if (queue.length) {
+          dfd.resolve(queue.shift());
+        } else {
+          waiting.push(dfd);
+        }
+
+        return dfd.promise();
+      }
+    });
+  }
+
+  return DeferredQueue;
+}();
+
+function wait(ms) {
   return $.Deferred(function () {
     setTimeout(this.resolve, ms);
   }).promise();

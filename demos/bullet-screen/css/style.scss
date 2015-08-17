@@ -3,157 +3,168 @@ $transparent-color: rgba(255, 255, 255, 0);
 $item-bg-color: rgba(255, 255, 255, 0.15);
 
 * {
-	outline: none;
+  outline: none;
 }
 
 ::selection {
-	color: currentColor;
-	background-color: #E24C4F;
+  color: currentColor;
+  background-color: #E24C4F;
 }
 
 html, body {
-	margin: 0;
-	padding: 0;
-	width: 100%;
-	height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
 }
 
 body {
-	background-color: #666;
+  background-color: #666;
 }
 
 body, button, input, select, textarea {
-	color: #333;
-	font: 14px/1.5 "\5FAE\8F6F\96C5\9ED1", "Microsoft Yahei", "Hiragino Sans GB", tahoma, arial, "\5B8B\4F53"
+  color: #333;
+  font: 14px/1.5 "\5FAE\8F6F\96C5\9ED1", "Microsoft Yahei", "Hiragino Sans GB", tahoma, arial, "\5B8B\4F53";
 }
 
 .container {
-	box-sizing: border-box;
-	display: flex;
-	flex-flow: column nowrap;
-	justify-content: center;
-	align-items: stretch;
-	width: 100%;
-	height: 100%;
-	max-width: 480px;
-	max-height: 720px;
-	position: relative;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  max-width: 480px;
+  max-height: 720px;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .panel {
-	box-sizing: border-box;
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: center;
-	align-items: stretch;
-	background-color: #363B3E;
-	height: 60px;
-	padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: stretch;
+  background-color: #363B3E;
+  height: 60px;
+  padding: 10px;
 
-	input {
-		flex: 1;
-		border: none;
-		border-radius: 8px;
-		padding: 5px 10px;
-		margin-right: 5px;
-		color: #828585;
-		background-color: #131716;
-		font-size: 16px;
+  input {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 10px;
+    margin-right: 5px;
+    color: #828585;
+    background-color: #131716;
+    font-size: 16px;
 
-		&::-webkit-input-placeholder {
-			color: #666;
-		}
-	}
+    &::-webkit-input-placeholder {
+      color: #666;
+    }
+  }
 
-	a {
-		width: 60px;
-		color: #aaa;
-		text-decoration: none;
-		text-align: center;
-		line-height: 40px;
-		font-size: 16px;
-	}
+  a {
+    width: 60px;
+    color: #aaa;
+    text-decoration: none;
+    text-align: center;
+    line-height: 40px;
+    font-size: 16px;
+  }
 }
 
 .bullets-outer {
-	position: relative;
-	box-sizing: border-box;
-	flex: 1;
-	display: flex;
-	flex-flow: column-reverse nowrap;
-	background-color: $bullets-bg-color;
-	padding: 10px;
-	overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  background-color: $bullets-bg-color;
+  padding: 10px;
+  overflow: hidden;
 
-	&::after {
-		position: absolute;
-		content: '';
-		width: 100%;
-		height: 10px;
-		left: 0;
-		top: 0;
-		background-color: $bullets-bg-color;
-	}
+  &::after {
+    position: absolute;
+    content: '';
+    width: 100%;
+    height: 10px;
+    left: 0;
+    top: 0;
+    background-color: $bullets-bg-color;
+  }
 }
 
 .bullets {
-	box-sizing: border-box;
-	height: 9000px;
-	display: flex;
-	flex: 0 0 auto;
-	flex-flow: column-reverse nowrap;
-	justify-content: flex-start;
-	align-items: flex-start;
+  box-sizing: border-box;
+  height: 9000px;
+  display: flex;
+  flex: 0 0 auto;
+  flex-flow: column-reverse nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .bullets .bullet {
-	background-color: $item-bg-color;
-	min-width: 30px;
-	min-height: 24px;
-	margin-top: 8px;
-	padding: 10px;
-	border-radius: 5px;
-	overflow: hidden;
-}
+  color: #ccc;
+  background-color: $item-bg-color;
+  min-width: 30px;
+  min-height: 24px;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  transform-origin: left bottom;
 
-.bullets .bullet > span {
-	line-height: 24px;
-	color: #ccc;
-	word-wrap: break-word;
-	word-break: break-all;
-}
+  &:first-child {
+    position: relative;
+    margin-bottom: 10px;
+    overflow: visible;
 
-.bullets .bullet:first-child {
-	position: relative;
-	margin-bottom: 10px;
-	overflow: visible;
+    &::before, &::after {
+      position: absolute;
+      content: '';
+      width: 0px;
+      top: 100%;
+      left: 15px;
+      border-style: solid;
+    }
 
-	&::before, &::after {
-		position: absolute;
-		content: '';
-		width: 0px;
-		top: 100%;
-		left: 15px;
-		border-style: solid;
-	}
+    &::before {
+      border-width: 0 0 10px 14px;
+      border-color: $transparent-color $item-bg-color;
+    }
 
-	&::before {
-		border-width: 0 0 10px 14px;
-		border-color: $transparent-color $item-bg-color;
-	}
+    &::after {
+      border-width: 0 0 10px 2px;
+      border-color: $transparent-color $bullets-bg-color;
+    }
+  }
 
-	&::after {
-		border-width: 0 0 10px 2px;
-		border-color: $transparent-color $bullets-bg-color;
-	}
+  &.pull-right {
+    align-self: flex-end;
+    transform-origin: right bottom;
+
+    &:first-child::before, &:first-child::after {
+      left: auto;
+      right: 15px;
+      transform: scale(-1, 1);
+    }
+  }
+
+  & > span {
+    line-height: 24px;
+    word-wrap: break-word;
+    word-break: break-all;
+  }
 }
 
 .scale-up {
-	transform-origin: left bottom;
-	animation-name: scale-up;
+  animation-name: scale-up;
   animation-duration: 300ms;
   animation-timing-function: ease-out;
   animation-delay: 0;
@@ -163,6 +174,6 @@ body, button, input, select, textarea {
 }
 
 @keyframes scale-up {
-	from { transform: scale(0,0); }
-	to { transform: scale(1,1); }
+  from { transform: scale(0,0); }
+  to { transform: scale(1,1); }
 }
