@@ -41,6 +41,12 @@ var schedule = (function (self) {
   return self;
 }(schedule || {}));
 
+function delay(ms) {
+  return $.Deferred(function () {
+    setTimeout(this.resolve, ms);
+  }).promise();
+}
+
 function vsub(tmpl, vector) {
   return ('' + tmpl).replace(/\$\{([^\{\}]+)\}/g, function (_, p) {
     return (vector || {})[p] || '';
