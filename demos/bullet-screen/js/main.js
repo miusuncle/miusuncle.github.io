@@ -5,7 +5,7 @@ var $bullets = $('#bullets');
 var $txtBullet = $('#txtBullet');
 var $cmdSend = $('#cmdSend');
 
-$txtBullet.keyup(function (e) {
+$txtBullet.keydown(function (e) {
   $cmdSend.text($txtBullet.val() ? '发送' : '填充');
 
   if (e.which === 13) {
@@ -22,7 +22,7 @@ $cmdSend.click(function () {
     return;
   }
 
-  $txtBullet.val('').focus();
+  $txtBullet.val('');
   $cmdSend.text('填充');
 
   sendBullet(text);
