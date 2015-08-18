@@ -1,5 +1,5 @@
 var DELAY = 300;
-var MAX_VIEW_SIZE = 8;
+var MAX_VIEW_SIZE = 5;
 
 var $bullets = $('#bullets');
 var $txtBullet = $('#txtBullet');
@@ -40,7 +40,7 @@ function sendBullet(item) {
   }
 
   livingToDie.push({
-    text: _.escape(item.text),
+    text: item.text,
     stay: item.stay || _.random(1000, 4000)
   });
 }
@@ -68,7 +68,7 @@ function showBullet(item) {
   var $bullet = $(bullet).prependTo($bullets);
 
   $bullet.slideDown(DELAY, function () {
-    wait(DELAY).done(buildBullet);
+    wait(DELAY * 2).done(buildBullet);
   });
 
   waitingToDie.push($bullet);
