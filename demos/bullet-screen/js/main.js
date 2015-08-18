@@ -1,5 +1,5 @@
 var DELAY = 300;
-var MAX_BULLET = 8;
+var MAX_VIEW_SIZE = 8;
 
 var $bullets = $('#bullets');
 var $txtBullet = $('#txtBullet');
@@ -28,6 +28,10 @@ $cmdSend.click(function () {
   sendBullet(text);
 });
 
+function bulletInView() {
+  return $bullets.children().size();
+}
+
 function sendBullet(item) {
   item || (item = '');
 
@@ -37,13 +41,20 @@ function sendBullet(item) {
 
   livingToDie.push({
     text: _.escape(item.text),
-    stay: item.stay || random(1000, 4000)
+    stay: item.stay || _.random(1000, 4000)
   });
 }
 
 function buildBullet() {
-  current += 1;
-  return livingToDie.pull().done(showBullet);
+  if (livingToDie.waitingSize()) {
+    return;
+  }
+
+  if (bulletInView() >= MAX_VIEW_SIZE) {
+    return;
+  }
+
+  livingToDie.pull().done(showBullet);
 }
 
 function showBullet(item) {
@@ -54,11 +65,10 @@ function showBullet(item) {
   );
 
   var bullet = vsub(tmpl, item);
+  var $bullet = $(bullet).prependTo($bullets);
 
-  var $bullet = $(bullet).prependTo($bullets).slideDown(DELAY, function () {
-    if (current < MAX_BULLET) {
-      wait(DELAY * 2).done(buildBullet);
-    }
+  $bullet.slideDown(DELAY, function () {
+    wait(DELAY).done(buildBullet);
   });
 
   waitingToDie.push($bullet);
@@ -70,21 +80,21 @@ function destroyBullet() {
 
     $item.delay(stay).fadeOut(800, function () {
     	$item.remove();
-
-      if (--current < MAX_BULLET) {
-        wait(DELAY).done(buildBullet);
-      }
-
-      destroyBullet();
+      $.when().done([buildBullet, destroyBullet]);
     });
   });
 }
 
+function pollSendBullet() {
+  setInterval(function () {
+    _.sample(bullets, 3 - bulletInView()).forEach(sendBullet);
+  }, 1000);
+}
+
 var livingToDie = new DeferredQueue;
 var waitingToDie = new DeferredQueue;
-var current = 0;
 
 wait(200).then(function () {
-  $.when(_.sample(bullets, MAX_BULLET).forEach(sendBullet))
-    .then(buildBullet).then(destroyBullet);
+  _.sample(bullets, 3).forEach(sendBullet);
+  $.when().done([buildBullet, destroyBullet, pollSendBullet]);
 });

@@ -65,6 +65,14 @@ var DeferredQueue = function () {
         }
 
         return dfd.promise();
+      },
+
+      waitingSize: function () {
+        return waiting.length;
+      },
+
+      queueSize: function () {
+        return queue.length;
       }
     });
   }
