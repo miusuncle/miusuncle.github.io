@@ -17,7 +17,7 @@ $cmdSend.click(function () {
   var text = $txtBullet.val();
 
   if (!text) {
-    $txtBullet.val(_.sample(bullets).text);
+    $txtBullet.val(_.sample(bullets));
     $cmdSend.text('发送');
     return;
   }
@@ -37,7 +37,7 @@ function sendBullet(item) {
 
   livingToDie.push({
     text: _.escape(item.text),
-    stay: item.stay || random(300, 3000)
+    stay: item.stay || random(1000, 4000)
   });
 }
 
@@ -57,7 +57,7 @@ function showBullet(item) {
 
   var $bullet = $(bullet).prependTo($bullets).slideDown(DELAY, function () {
     if (current < MAX_BULLET) {
-      wait(DELAY).done(buildBullet);
+      wait(DELAY * 2).done(buildBullet);
     }
   });
 
@@ -69,6 +69,8 @@ function destroyBullet() {
     var stay = $item.data('stay');
 
     $item.delay(stay).fadeOut(800, function () {
+    	$item.remove();
+
       if (--current < MAX_BULLET) {
         wait(DELAY).done(buildBullet);
       }
@@ -83,6 +85,6 @@ var waitingToDie = new DeferredQueue;
 var current = 0;
 
 wait(200).then(function () {
-  $.when(bullets.forEach(sendBullet))
+  $.when(_.sample(bullets, MAX_BULLET).forEach(sendBullet))
     .then(buildBullet).then(destroyBullet);
 });
