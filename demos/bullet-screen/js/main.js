@@ -28,7 +28,7 @@ $cmdSend.click(function () {
   sendBullet(text);
 });
 
-function bulletInView() {
+function bulletsInView() {
   return $bullets.children().size();
 }
 
@@ -50,7 +50,7 @@ function buildBullet() {
     return;
   }
 
-  if (bulletInView() >= MAX_VIEW_SIZE) {
+  if (bulletsInView() >= MAX_VIEW_SIZE) {
     return;
   }
 
@@ -79,7 +79,7 @@ function destroyBullet() {
     var stay = $item.data('stay');
 
     $item.delay(stay).fadeOut(800, function () {
-    	$item.remove();
+      $item.remove();
       $.when().done([buildBullet, destroyBullet]);
     });
   });
@@ -87,7 +87,7 @@ function destroyBullet() {
 
 function pollSendBullet() {
   setInterval(function () {
-    _.sample(bullets, 3 - bulletInView()).forEach(sendBullet);
+    _.sample(bullets, 3 - bulletsInView()).forEach(sendBullet);
   }, 1000);
 }
 
