@@ -166,7 +166,7 @@ body, button, input, select, textarea {
 .scale-up {
   animation-name: scale-up;
   animation-duration: 300ms;
-  animation-timing-function: ease-out;
+  animation-timing-function: cubic-bezier(0.15, -0.5, 0.5, 1.5);
   animation-delay: 0;
   animation-iteration-count: 1;
   animation-direction: normal;
