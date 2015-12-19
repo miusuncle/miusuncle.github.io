@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Markdown编辑器</title>
+<link id="refText" rel="import" href="_imports/text.html">
+<link rel="stylesheet" href="./styles/fontawesome/font-awesome.css">
+<link rel="stylesheet" href="./styles/github-markdown.css">
+<link rel="stylesheet" href="./styles/hljs.github.css">
+<link rel="stylesheet" href="./styles/simplemde.css">
+<style>
+.markdown-body {
+	font-family: 'Microsoft Yahei';
+}
+</style>
+</head>
+<body>
+<textarea id="editor" style="display:none;"></textarea>
+<script src="./scripts/jquery.js"></script>
+<script src="./scripts/highlight.min.js"></script>
+<script src="./scripts/simplemde.js"></script>
+<script src="./scripts/simplemde_wrapper.js"></script>
+<script>
+var simplemde = new SimpleMDE({
+	element: document.querySelector('#editor'),
+	includeTOC: true,
+	tocHeadings: 'h2,h3,h4'
+});
+
+simplemde.toggleSideBySide();
+
+var htmlContents = $('#text', refText.import).get(0).innerHTML;
+simplemde.value(htmlContents);
+</script>
+</body>
+</html>
