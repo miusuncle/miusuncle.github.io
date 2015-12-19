@@ -17,7 +17,7 @@
   border-left: 2px solid #D3D3D3;
   padding-left: 10px;
   margin-top: 20px;
-  margin-bottom: -10px;
+  /*margin-bottom: -10px;*/
 }
 
 .markdown-body .toc-box .toc-list li {
