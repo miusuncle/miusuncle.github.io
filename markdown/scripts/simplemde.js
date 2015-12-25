@@ -12823,7 +12823,7 @@ var isMac = /Mac/.test(navigator.platform);
 var shortcuts = {
 	"Cmd-B": toggleBold,
 	"Cmd-I": toggleItalic,
-	"Cmd-Q": toggleInlineCodeBlock,
+	"Alt-C": toggleInlineCodeBlock,
 	"Cmd-K": drawLink,
 
 	'Alt-1': toggleHeading1,
@@ -13733,7 +13733,7 @@ var toolbarBuiltInButtons = {
 		name: "fullscreen",
 		action: toggleFullScreen,
 		className: "fa fa-arrows-alt no-disable no-mobile",
-		title: "Toggle Fullscreen (F11)",
+		title: "Toggle Fullscreen (F10)",
 		default: true
 	},
 	"guide": {
@@ -13944,9 +13944,9 @@ SimpleMDE.prototype.render = function(el) {
 	keyMaps["Enter"] = "newlineAndIndentContinueMarkdownList";
 	keyMaps["Tab"] = "tabAndIndentMarkdownList";
 	keyMaps["Shift-Tab"] = "shiftTabAndUnindentMarkdownList";
-	/*keyMaps["F11"] = function() {
+	keyMaps["F10"] = function() {
 		toggleFullScreen(self);
-	};*/
+	};
 
 	keyMaps["Alt-H"] = function () {
 		CodeMirror.commands.goCharLeft(self.codemirror);
@@ -14012,17 +14012,17 @@ SimpleMDE.prototype.render = function(el) {
 	keyMaps["F9"] = function() {
 		toggleSideBySide(self);
 	};
-	/*keyMaps["Esc"] = function(cm) {
+	keyMaps["Esc"] = function(cm) {
 		if(cm.getOption("fullScreen")) toggleFullScreen(self);
-	};*/
+	};
 
-	/*document.addEventListener("keydown", function(e) {
+	document.addEventListener("keydown", function(e) {
 		e = e || window.event;
 
 		if(e.keyCode == 27) {
 			if(self.codemirror.getOption("fullScreen")) toggleFullScreen(self);
 		}
-	}, false);*/
+	}, false);
 
 	// mixin external keymaps
 	extend(keyMaps, this.options.keyMaps || {});

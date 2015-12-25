@@ -71,7 +71,7 @@ void function () {
 			name: 'inlinecode',
 			action: _SimpleMDE.toggleInlineCodeBlock,
 			className: 'fa fa-code fa-code-inline',
-			title: '内联代码 (Ctrl+Q)'
+			title: '内联代码 (Alt+C)'
 		},
 		'|',
 		{
@@ -96,7 +96,7 @@ void function () {
 			name: 'ordered-list',
 			action: _SimpleMDE.toggleOrderedList,
 			className: 'fa fa-list-ol',
-			title: '有序列表 (Ctrl+Shift+L'
+			title: '有序列表 (Ctrl+Shift+L)'
 		},
 		'|',
 		{
@@ -159,7 +159,7 @@ void function () {
 			name: 'fullscreen',
 			action: _SimpleMDE.toggleFullScreen,
 			className: 'fa fa-arrows-alt no-disable no-mobile',
-			title: '全屏'
+			title: '切换全屏 (F10)'
 		},
 		{
 			name: 'markdown-guide',
@@ -318,6 +318,7 @@ void function () {
 			).appendTo(document.body).hide();
 
 			$uploadImageBox.find('.J-uploadImage').fileupload({
+				dropZone: $(options.element).parent(),
 				url: uploadImageCgi,
 				dataType: 'json',
 				done: function (e, data) {
