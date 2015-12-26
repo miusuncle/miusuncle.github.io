@@ -2,22 +2,28 @@ void function () {
 	var _SimpleMDE = window.SimpleMDE;
 
 	// Toggle-TOC feature BEGIN
-	function toggleTOC(editor) {
-		var $target = $(editor.toolbarElements['generate-toc']);
-		editor.includeTOC = !editor.includeTOC;
+	function toggleTOC(editor, isShow) {
+		var $target = $(editor.toolbarElements['toggle-toc']);
+		var tocItem = TOOLBAR_MAPPING['toggle-toc'];
+
+		if (typeof isShow === 'boolean') {
+			editor.includeTOC = isShow;
+		} else {
+			editor.includeTOC = !editor.includeTOC;
+		}
 
 		if (editor.includeTOC) {
-			$target.addClass('active');
+			$target.addClass('active').attr('title', tocItem['titles'][1]);;
 		} else {
-			$target.removeClass('active');
+			$target.removeClass('active').attr('title', tocItem['titles'][0]);;
 		}
 
 		$target.blur();
 		editor.updatePreview();
 	}
 
-	_SimpleMDE.prototype.toggleTOC = function () {
-		toggleTOC(this);
+	_SimpleMDE.prototype.toggleTOC = function (isShow) {
+		toggleTOC(this, isShow);
 	};
 
 	_SimpleMDE.toggleTOC = toggleTOC;
@@ -138,10 +144,11 @@ void function () {
 		},
 		'|',
 		{
-			name: 'generate-toc',
+			name: 'toggle-toc',
 			action: _SimpleMDE.toggleTOC,
 			className: 'fa fa-toc no-disable',
-			title: '生成TOC (Alt+`)'
+			titles: ['显示TOC (Alt+`)', '隐藏TOC (Alt+`)'],
+			title: '切换TOC显隐'
 		},
 		{
 			name: 'preview',
@@ -171,6 +178,11 @@ void function () {
 		}
 	];
 
+	var TOOLBAR_MAPPING = DEFAULT_TOOLBAR.reduce(function (ret, item) {
+		ret[item.name] = item;
+		return ret;
+	}, {});
+
 	$.extend(_SimpleMDE.prototype, {
 		html: function (markdown) {
 			// return pure html
@@ -187,8 +199,14 @@ void function () {
 			return output;
 		},
 
-		toc: function (htmlContents) {
+		toc: function (htmlContents, withWrapper) {
+			if (typeof htmlContents === 'boolean') {
+				withWrapper = htmlContents;
+				htmlContents = '';
+			}
+
 			htmlContents || (htmlContents = this.markdown(this.value()));
+			withWrapper = (withWrapper !== false);
 
 			var docFragment = document.createDocumentFragment();
 			var rootElement = docFragment.appendChild(document.createElement('div'));
@@ -258,7 +276,11 @@ void function () {
 				return ret;
 			}, result);
 
-			return ['<div class="toc-box"><ul class="toc-list">', result.output, '</ul></div>'].join('');
+			if (withWrapper) {
+				return ['<div class="toc-box"><ul class="toc-list">', result.output, '</ul></div>'].join('');
+			} else {
+				return result.output;
+			}
 		},
 
 		updatePreview: function () {
@@ -285,9 +307,10 @@ void function () {
 			var $uploadImageBox = $('<div>');
 			var targetIndex = -1;
 
-			toolbar.forEach(function (item, index) {
+			$.each(toolbar, function (index, item) {
 				if (item.name === 'image') {
 					targetIndex = index + 1;
+					return false;
 				}
 			});
 
@@ -398,12 +421,9 @@ void function () {
 			}
 		}, options));
 
-		mdeInstance.includeTOC = (includeTOC !== false);
 		mdeInstance.tocHeadings = tocHeadings;
-
-		if (mdeInstance.includeTOC) {
-			$(mdeInstance.toolbarElements['generate-toc']).addClass('active');
-		}
+		mdeInstance.includeTOC = (includeTOC !== false);
+		mdeInstance.toggleTOC(mdeInstance.includeTOC);
 
 		return mdeInstance;
 	}

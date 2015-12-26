@@ -13285,7 +13285,7 @@ function toggleSideBySide(editor) {
 /**
  * Preview action.
  */
-function togglePreview(editor) {
+function togglePreview(editor, toPreview) {
 	var cm = editor.codemirror;
 	var wrapper = cm.getWrapperElement();
 	var toolbar_div = wrapper.previousSibling;
@@ -13296,7 +13296,15 @@ function togglePreview(editor) {
 		preview.className = "editor-preview";
 		wrapper.appendChild(preview);
 	}
-	if(/editor-preview-active/.test(preview.className)) {
+
+	var cancelPreview;
+	if (typeof toPreview === 'boolean') {
+		cancelPreview = !toPreview;
+	} else {
+		cancelPreview = /editor-preview-active/.test(preview.className);
+	}
+
+	if(cancelPreview) {
 		preview.className = preview.className.replace(
 			/\s*editor-preview-active\s*/g, ""
 		);
@@ -14239,7 +14247,7 @@ SimpleMDE.prototype.createToolbar = function(items) {
 		var stat = getState(cm);
 
 		for(var key in toolbar_data) {
-			if (key === 'generate-toc') {
+			if (key === 'toggle-toc') {
 				continue;
 			}
 
@@ -14410,8 +14418,8 @@ SimpleMDE.prototype.undo = function() {
 SimpleMDE.prototype.redo = function() {
 	redo(this);
 };
-SimpleMDE.prototype.togglePreview = function() {
-	togglePreview(this);
+SimpleMDE.prototype.togglePreview = function(toPreview) {
+	togglePreview(this, toPreview);
 };
 SimpleMDE.prototype.toggleSideBySide = function() {
 	toggleSideBySide(this);
