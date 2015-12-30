@@ -391,8 +391,8 @@ void function () {
 			indentWithTabs: true,
 			initialValue: '',
 			insertTexts: {
-				link: ['[', '](http://)'],
-				image: ['![](http://', ')'],
+				link: ['[', ']()'],
+				image: ['![](', ')'],
 				table: ['', '| 标题1 | 标题2 | 标题3 |\n|---------|---------|---------|\n| 文本1 | 文本2 | 文本3 |\n'],
 				horizontalRule: ['-----', '']
 			},
