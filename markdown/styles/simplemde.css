@@ -48,9 +48,10 @@
 /* CURSOR */
 
 .CodeMirror-cursor {
-  border-left: 3px solid #1BC7FB;
+  border-left: none;
   border-right: none;
-  width: 0;
+  width: 2px;
+  background: #1BC7FB;
 }
 /* Shown when moving in bi-directional text */
 .CodeMirror div.CodeMirror-secondarycursor {
@@ -299,6 +300,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 div.CodeMirror-cursors {
   visibility: hidden;
   position: relative;
+  left: -1.5px;
   z-index: 3;
 }
 div.CodeMirror-dragcursors {
@@ -321,7 +323,7 @@ div.CodeMirror-dragcursors {
 }
 
 /* IE7 hack to prevent it from returning funny offsetTops on the spans */
-.CodeMirror span { *vertical-align: text-bottom; }
+.CodeMirror span { *vertical-align: text-bottom; letter-spacing:1px; }
 
 /* Used to force a border model for a node */
 .cm-force-border { padding-right: .1px; }
