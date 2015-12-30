@@ -14169,7 +14169,7 @@ SimpleMDE.prototype.createSideBySide = function() {
 	});
 
 	// Syncs scroll  preview -> editor
-	preview.onscroll = function() {
+	/*preview.onscroll = function() {
 		if(pScroll) {
 			pScroll = false;
 			return;
@@ -14179,7 +14179,7 @@ SimpleMDE.prototype.createSideBySide = function() {
 		var ratio = parseFloat(preview.scrollTop) / height;
 		var move = (cm.getScrollInfo().height - cm.getScrollInfo().clientHeight) * ratio;
 		cm.scrollTo(0, move);
-	};
+	};*/
 	return true;
 };
 
