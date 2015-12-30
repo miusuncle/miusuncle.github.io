@@ -13911,6 +13911,7 @@ SimpleMDE.prototype.markdown = function(text) {
 
 		renderer.heading = function(text, level) {
 			var escapedText = text.toLowerCase().replace(/\s+/g, '-');
+			text = text.replace(/\s+/, ' ');
 			return '<h' + level + ' id="' + escapedText + '">' + text + '</h' + level + '>';
 		};
 
