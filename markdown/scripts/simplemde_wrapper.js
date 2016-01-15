@@ -212,7 +212,32 @@ void function () {
 			var rootElement = docFragment.appendChild(document.createElement('div'));
 			rootElement.innerHTML = htmlContents;
 
-			var $headings = Array.apply(null, rootElement.querySelectorAll(this.tocHeadings));
+			var tocHeadings = this.tocHeadings;
+			var tocHeadingDepth = this.tocHeadingDepth;
+			var firstHeading = rootElement.querySelector(tocHeadings);
+
+			if (!firstHeading) {
+				return '';
+			}
+
+			// 第一个出现标题的标签名
+			var tagName = firstHeading.tagName.toLowerCase();
+			var headings = [], found = false;
+
+			tocHeadings.split(',').forEach(function (heading) {
+				if (heading === tagName) {
+					found = true;
+				}
+
+				if (found) {
+					headings.push(heading);
+				}
+			});
+
+			// 重新设定（规划）`tocHeadings`
+			tocHeadings = headings.slice(0, tocHeadingDepth).join(',');
+
+			var $headings = Array.apply(null, rootElement.querySelectorAll(tocHeadings));
 
 			if (!$headings.length) {
 				return '';
@@ -298,6 +323,10 @@ void function () {
 		var uploadImageCgi = options.uploadImageCgi;
 		var includeTOC = options.includeTOC;
 		var tocHeadings = options.tocHeadings || 'h2,h3';
+
+		var maxDepath = tocHeadings.split(',').length;
+		var tocHeadingDepth = Math.min(options.tocHeadingDepth || maxDepath, maxDepath);
+		tocHeadingDepth = Math.max(1, tocHeadingDepth);
 
 		delete options.uploadImageCgi;
 		delete options.includeTOC;
@@ -422,6 +451,7 @@ void function () {
 		}, options));
 
 		mdeInstance.tocHeadings = tocHeadings;
+		mdeInstance.tocHeadingDepth = tocHeadingDepth;
 		mdeInstance.includeTOC = (includeTOC !== false);
 		mdeInstance.toggleTOC(mdeInstance.includeTOC);
 
