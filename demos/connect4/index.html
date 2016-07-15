@@ -1,0 +1,2537 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="page-view-size" content="1280*720" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>四子棋(家庭对战)</title>
+<style type="text/css">
+#leftUI img, #inningTimeUI img {
+  position: absolute;
+}
+
+#mainUI img {
+  position: absolute;
+}
+
+#piecesContainer img {
+  width: 61px;
+  height: 61px;
+}
+
+#fbRow, #piecesContainer img {
+  -webkit-transition-duration: 300ms;
+}
+
+#gridFrame, #gridBevel, #haloContainer, #lblStateTips, #gamePopBox {
+  -webkit-transition-duration: 10ms;
+}
+
+#gameStartElement, #gameOverElement {
+  -webkit-transition-duration: 300ms;
+}
+</style>
+<script>
+/*========================= binding event begin [2.0.3] =========================*/
+var __USER_AGENT__ = (function () {
+  var tmpAgent = navigator.userAgent.toLowerCase();
+  if (tmpAgent.indexOf("android") > -1) {
+    tmpAgent = "android";       //android
+  } else if (tmpAgent.indexOf("coship") > -1) {
+    tmpAgent = 'coship';    //同洲
+  } else if (tmpAgent.indexOf('hi3110') > -1 || tmpAgent.indexOf('i686') > -1) {
+    tmpAgent = 'huawei';    //华为
+  } else if (tmpAgent.indexOf('ipad') > -1) {
+    tmpAgent = 'suma_vision'; //数码视讯
+  } else if (tmpAgent.indexOf('gefo') > -1) {
+    tmpAgent = 'cntv';    //CNTV
+  } else if (tmpAgent.indexOf('ipanel') > -1) {
+    tmpAgent = 'ipanel';    //茁壮
+  } else if (tmpAgent.indexOf('firefox') > -1) {
+    tmpAgent = 'dvn';     //天柏
+  } else {
+    tmpAgent = 'suma_vision'; //默认数码视讯
+  }
+  switch (tmpAgent) {
+  case 'coship':
+  case 'huawei':
+    document.onkeypress = grabEvent;
+    break;
+  case 'ipanel':
+  case 'suma_vision':
+    document.onkeypress = grabEvent;
+    document.onirkeypress = grabEvent;
+    document.onsystemevent = grabEvent;
+    break;
+  case 'cntv':
+  case 'dvn':
+    document.onkeydown = grabEvent;
+    break;
+  default:
+    document.onkeypress = grabEvent;
+    break;
+  }
+  return tmpAgent;
+}());
+/*========================= binding event end =========================*/
+
+var isPageLoaded = 0;   //文档加载之前该值为0,表示不可交互
+
+var appEnums = {
+  ROW_AREA: 0,
+  CMD_AREA: 1,
+
+  //方向常量
+  MOVE_UP: 1,
+  MOVE_DOWN: 2,
+  MOVE_LEFT: 3,
+  MOVE_RIGHT: 4,
+  //分页常量
+  FIRST_PAGE: 0,
+  PREV_PAGE: 1,
+  NEXT_PAGE: 2,
+  LAST_PAGE: 3
+};
+
+var focusArea = appEnums.ROW_AREA;
+
+var appContext = {
+  roleInfo: [
+    {name: '毗沙门天', icon: 'images/shared/role_icon_0.jpg'},
+    {name: '阿瑞斯', icon: 'images/shared/role_icon_1.jpg'},
+    {name: '玛尔斯', icon: 'images/shared/role_icon_2.jpg'},
+    {name: '提尔', icon: 'images/shared/role_icon_3.jpg'},
+    {name: '阿修罗', icon: 'images/shared/role_icon_4.jpg'},
+    {name: '须佐之男', icon: 'images/shared/role_icon_5.jpg'}
+  ]
+};
+
+function grabEvent(__key_code) {
+  var key_code = 0;
+  if (__USER_AGENT__ == 'android')
+  {
+    key_code = __key_code;
+  }
+  else
+  {
+    key_code = transform_key_value(event.which || event.keyCode);
+  }
+  if(gamePopBox.responseEnabled()) {//弹出框
+    gamePopBox.response(key_code);
+    return 0;
+  }
+  if (key_code < 58 && key_code > 47) {
+    key_code = key_code - 48;
+    return 0;
+  } else {
+    switch (key_code) {
+    case 1:   //up
+    case 119:
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      mainShift(appEnums.MOVE_UP);
+      return 0;
+      break;
+    case 2:   //down
+    case 115:
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      mainShift(appEnums.MOVE_DOWN);
+      return 0;
+      break;
+    case 3:   //left
+    case 97:
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      mainShift(appEnums.MOVE_LEFT);
+      return 0;
+      break;
+    case 4:   //right
+    case 100:
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      mainShift(appEnums.MOVE_RIGHT);
+      return 0;
+      break;
+    case 13:  //enter
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      mainPressed();
+      return 0;
+      break;
+    case 339: //exit
+      broadin.utils.exitToPortal();
+      return 0;
+      break;
+    case 563:
+      broadin.utils.watchTV(true);
+      return 0;
+      break;
+    case 570: //节目单
+      broadin.utils.openEPG();
+      return 0;
+      break;
+    case 514: //喜爱
+      broadin.utils.openFavor();
+      return 0;
+      break;
+    case 521: //邮件
+      broadin.utils.openEmailManager();
+      return 0;
+      break;
+    case 340: //backspace
+      connect4Widget.leave();
+      return 0;
+      break;
+    case 372:   //上翻页
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      return 0;
+      break;
+    case 373: //下翻页
+      if (isPageLoaded === 0) {
+        return 0;
+      }
+      return 0;
+      break;
+    case 513: //菜单
+      broadin.utils.openMenu(true);
+      return 0;
+      break;
+    case 832: //F2键
+      window.location.href = "http://192.168.2.201/liusy"; //调试地址，以后会删掉
+      return 0;
+      break;
+    }
+  }
+  return 1;
+}
+
+/*========================= transform_key_value begin [2.1.3] =========================*/
+function transform_key_value (__keyCode) {
+  if (__keyCode === 27 && __USER_AGENT__ === "cntv") {
+    __keyCode = 340;
+  } else {
+    switch (__keyCode) {
+      case 87://(suma-vision) //up
+      case 38://(coship)
+      case 65362://dvn
+        __keyCode = 1;  //(ipanel)
+        break;
+      case 83:  //down
+      case 40:
+      case 65364://(dvn)
+        __keyCode = 2;
+        break;
+      case 65:  //left
+      case 37:
+      case 65361://(dvn)
+        __keyCode = 3;
+        break;
+      case 68:  //right
+      case 39:
+      case 65363://(dvn)
+        __keyCode = 4;
+        break;
+      case 65293://(dvn)
+        __keyCode = 13;
+        break;
+      case 306: //page up
+      case 33:
+      case 25:  //(dvn)
+      case 120:       //coship
+        __keyCode = 372;
+        break;
+      case 307: //page down
+      case 34:
+      case 26:  //(dvn)
+      case 121:       //coship
+        __keyCode = 373;
+        break;
+      case 273://zte
+      case 468: //menu
+      case 65360://(dvn)
+        __keyCode = 513;
+        break;
+      case 8:   //back
+      case 640:
+      case 65367://(dvn)
+      case 283:
+        __keyCode = 340;
+        break;
+      case 114:       //coship
+      case 27:  //exit
+        __keyCode = 339;
+        break;
+      case 80:  //去看电视
+      case 642://(coship)
+        __keyCode = 563;
+        break;
+      case 259://zte
+      case 61:  //音量加
+      case 447://(coship)
+        __keyCode = 595;
+        break;
+      case 260://zte
+      case 45:  //音量减
+      case 448://(coship)
+        __keyCode = 596;
+        break;
+      case 261://zte
+      case 67:  //静音
+      case 449://(coship)
+        __keyCode = 597;
+        break;
+      case 320: //红键
+      case 118:
+      case 442:
+      case 96:        //(coship)
+        __keyCode = 832;
+        break;
+      case 10901: //音频播放结束
+      case 40200:
+        __keyCode = 5404;
+        break;
+      case 69:  //节目单(suma)
+      case 458://(coship)
+        __keyCode = 570;
+        break;
+      case 76:  //喜爱(suma)
+      case 480://(coship)
+        __keyCode = 514;
+        break;
+      case 77:  //邮件(suma)
+        __keyCode = 521;
+        break;
+    }
+  }
+  return __keyCode;
+}
+/*========================= transform_key_value end =========================*/
+
+function init() {
+  document.body.style.visibility = 'visible';
+  initializeUI();
+  isPageLoaded = 1;
+}
+
+function throttle(method, context) {
+  clearTimeout(method.tId);
+  method.tId= setTimeout(function(){
+    method.call(context);
+  }, 100);
+}
+
+function bind(fn, context) {
+  return function () {
+    return fn.apply(context, arguments);
+  };
+}
+
+function initializeUI() {
+  var context = appContext,
+      pageURI = window.location.href,
+      matches, playerId = 0;
+
+  if ((matches = /\.htm\?pid=([0-5])/.exec(pageURI))) {
+    playerId = Number(matches[1]);
+  }
+
+  renderUI(playerId);
+  initConnect4();
+  connect4Widget.start(); // begin fight
+}
+
+function renderUI(playerId) {
+  var context = appContext, roleInfo = appContext.roleInfo;
+
+  $('playerIcon').src = roleInfo[playerId].icon;
+  $('playerName').innerText = roleInfo[playerId].name;
+}
+
+function initConnect4() {
+  connect4Widget.initialize();
+}
+
+/*++++++++++++++++++++++++++++++++++++++++++++++ 焦点切换逻辑代码 开始 ++++++++++++++++++++++++++++++++++++++++++++++*/
+function mainShift(__action) {
+  switch (focusArea) {
+  case appEnums.ROW_AREA:
+    rowShift(__action);
+    break;
+  case appEnums.CMD_AREA:
+    cmdShift(__action);
+    break;
+  }
+}
+
+function rowShift(__action) {
+  switch (__action) {
+  case appEnums.MOVE_DOWN:  // 落棋
+    throttle(connect4Widget.fallPiece, connect4Widget);
+    break;
+  case appEnums.MOVE_LEFT:
+    connect4Widget.horizMove(-1);
+    break;
+  case appEnums.MOVE_RIGHT:
+    connect4Widget.horizMove(1);
+    break;
+  }
+}
+
+function cmdShift(__action) {
+  var $this = cmdShift;
+
+  switch (__action) {
+  case appEnums.MOVE_UP:
+    if ($this.focusIdx > 0) {
+      $this.setFocusIdx($this.focusIdx - 1);
+    }
+    break;
+  case appEnums.MOVE_DOWN:
+    if ($this.focusIdx < $this.imageNames.length - 1) {
+      $this.setFocusIdx($this.focusIdx + 1);
+    }
+    break;
+  case appEnums.MOVE_LEFT:
+    focusArea = appEnums.ROW_AREA;
+    $this.hideFocus();
+    $('fbRow').style.opacity = 1;
+    break;
+  }
+}
+(function (context) {
+  context.focusIdx = 0; // 0: 悔棋, 1: 重新开始, 2: 退出对战
+
+  context.imageDir = 'images/fight/';
+  context.imageNames = [
+    ['undo_blur.png', 'undo_focus.png'],
+    ['restart_game_blur.png', 'restart_game_focus.png'],
+    ['end_fight_blur.png', 'end_fight_focus.png']
+  ];
+
+  context.setFocusIdx = function(newIdx) {
+    var prevIdx = this.focusIdx;
+
+    this.focusIdx = newIdx;
+    this.hideFocus(prevIdx);
+    this.showFocus(newIdx);
+  };
+
+  context.hideFocus = function (__idx) {
+    __idx = typeof(__idx) === 'number' ? __idx : this.focusIdx;
+    $('cmd' + __idx).src = this.imageDir + this.imageNames[__idx][0];
+  };
+
+  context.showFocus = function (__idx) {
+    __idx = typeof(__idx) === 'number' ? __idx : this.focusIdx;
+    $('cmd' + __idx).src = this.imageDir + this.imageNames[__idx][1];
+  };
+}(cmdShift));
+
+// 切换焦点显隐
+function toggleFocusView(__hId, __vId) {
+  $(__hId).style.visibility = 'hidden';
+  $(__vId).style.visibility = 'visible';
+}
+/*++++++++++++++++++++++++++++++++++++++++++++++ 焦点切换逻辑代码 结束 ++++++++++++++++++++++++++++++++++++++++++++++*/
+
+/*++++++++++++++++++++++++++++++++++++++++++++++ 焦点确定键逻辑代码 开始 ++++++++++++++++++++++++++++++++++++++++++++++*/
+function mainPressed() {
+  switch (focusArea) {
+  case appEnums.ROW_AREA:
+    rowPressed();
+    break;
+  case appEnums.CMD_AREA:
+    cmdPressed();
+    break;
+  }
+}
+
+function rowPressed() {
+  // 落棋
+  throttle(connect4Widget.fallPiece, connect4Widget);
+}
+
+function cmdPressed() {
+  switch (cmdShift.focusIdx) {
+  case 0: // 悔棋
+    connect4Widget.undo();
+    break;
+  case 1: // 重新开始
+    connect4Widget.restart();
+    break;
+  case 2: // 退出对战
+    connect4Widget.leave();
+    break;
+  }
+}
+/*++++++++++++++++++++++++++++++++++++++++++++++ 焦点确定键逻辑代码 结束 ++++++++++++++++++++++++++++++++++++++++++++++*/
+
+Object.extend = function (destination, source) {
+  var property;
+  for (property in source) {
+    destination[property] = source[property];
+  }
+  return destination;
+};
+
+var connect4Widget = (function (context) {
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Parameters
+
+  var players = {
+    one: 0,
+    two: 1
+  };
+
+  var boardRules = {
+    columns: 7,
+    rows: 6,
+    connect: 4
+  };
+
+  var initialDifficulty = 35;
+  var initialDifficultyStep = 30;
+  var minDifficultyStep = 2;
+  var maxDifficulty = 1000;
+  var minDifficulty = 0;
+
+  var cpuPause = 250;
+
+  context = {
+    memos: {}, // 记忆AI根据棋盘下的棋
+    board: null,
+
+    gridBoard: [],
+    toWin    : 4, // 四颗棋成线则赢
+
+    focusIdx: 3,  // 棋盘焦点框索引
+    boxX    : [32, 112, 192, 272, 352, 432, 512],
+
+    pieceCount  : 0, // 当前操作的棋子索引
+    falledPieces: [],
+    pieceX      : [45, 125, 205, 285, 365, 445, 525], // 棋子X轴向坐标
+    pieceY      : [549, 469, 389, 309, 229, 149],     // 棋子Y轴向坐标
+
+    steps: '#',
+
+    inningCnt      : 7,    // 总局数
+    currInningCnt  : 0,    // 当前第几局？
+    inningTime     : 60,   // 每局限时(分钟)
+    inningTimeCount: null, // 每局限时倒计时对象
+
+    moveScore: [],
+
+    currPlayer: 'PLAYER', // 'PLAYER' : 'NPC'
+    PLAYER: {
+      mark     : 'O',
+      name     : '橙棋',
+      winCnt   : 0,
+      loseCnt  : 0,
+      drawCnt  : 0,
+      pieceIcon: 'images/fight/orange.png',
+      haloIcon : 'images/fight/halo_orange.png',
+      winIcon  : 'url(images/perf/self_orange_win_icon.png)'
+    },
+    NPC: {
+      mark     : 'B',
+      name     : '蓝棋',
+      winCnt   : 0,
+      loseCnt  : 0,
+      drawCnt  : 0,
+      pieceIcon: 'images/fight/blue.png',
+      haloIcon : 'images/fight/halo_blue.png',
+      winIcon  : 'url(images/perf/npc_blue_win_icon.png)'
+    },
+
+    gameBeginIcon: 'url(images/perf/game_begin_icon.png)',
+    drawIcon     : 'url(images/perf/draw_icon.png)',
+
+    pieceImages: ['images/fight/orange.png', 'images/fight/blue.png'],
+    haloImages : ['images/fight/halo_orange.png', 'images/fight/halo_blue.png'],
+
+    haloX: [32, 112, 192, 272, 352, 432, 512],  // 光晕X轴向坐标
+    haloY: [536, 456, 376, 296, 216, 136],  // 光晕Y轴向坐标
+
+    isStart   : true, // 是否刚开局
+    isGameOver: true, // 游戏是否结束
+
+    initialize: function () {
+      this.resetMetaData().initTimeCount();
+
+      this.width = this.pieceX.length;  // 棋盘列数
+      this.height = this.pieceY.length; // 棋盘行数
+      return this;
+    },
+    // 开始对战
+    start: function () {
+      if (this.currInningCnt < this.inningCnt) {
+        this.board = new Board();
+
+        this.animGameStart(function (self) {
+          self.initState().updateTurnView().showNextPiece();
+
+          self.modInningCnt(self.currInningCnt + 1);
+
+          self.inningTimeCount.restartTime();
+        });
+      } else {  // 游戏结束
+        this.inningTimeCount.stopTime();
+
+        var $this = this,
+            desc = '';
+
+        if (this['PLAYER'].winCnt > this['NPC'].winCnt) {
+          if (this['PLAYER'].winCnt >= this.inningCnt) {
+            desc = '恭喜你以' + this.inningCnt + ':0完胜蓝棋!';
+          } else {
+            desc = '恭喜你以' + this['PLAYER'].winCnt + ':' + this['NPC'].winCnt + '战胜电脑！';
+          }
+        } else if ((this['PLAYER'].winCnt < this['NPC'].winCnt)) {
+          if (this['NPC'].winCnt >= this.inningCnt) {
+            desc = '电脑以' + this.inningCnt + ':0完胜你, 请再接再厉哦!';
+          } else {
+            desc = '电脑以' + this['NPC'].winCnt + ':' + this['PLAYER'].winCnt + '获得胜利！';
+          }
+        } else {
+          desc = '双方平局!';
+        }
+
+        gamePopBox.show(desc, gamePopBox.GAMEOVER_MODE, '游戏结束', function (idx) {
+          if (idx === 0) { // 重来一局
+            $this.currInningCnt = 0;
+            $this.resetMetaData().start();
+          } else {  // 退出对战
+            pageBack();
+          }
+        });
+      }
+    },
+    // 重新开始
+    restart: function () {
+      if (!this.isGameOver) {
+        var $this = this;
+
+        $this.inningTimeCount.pauseTime();
+
+        gamePopBox.show('游戏进行中，是否重新开始?', gamePopBox.CONFIRM_MODE, '', function (idx) {
+          if (idx === 0) { // 重新开始
+            if (focusArea === appEnums.CMD_AREA) {
+              focusArea = appEnums.ROW_AREA;
+              cmdShift(appEnums.MOVE_LEFT);
+            }
+
+            $this.inningTimeCount.stopTime();
+
+            $this.currInningCnt = 0;
+            $this.resetMetaData().start();
+          } else {
+            $this.inningTimeCount.startTime();
+          }
+        });
+      } else {
+        this.currInningCnt = 0;
+        this.resetMetaData().start();
+      }
+    },
+    // 离开对战
+    leave: function () {
+      if (!this.isGameOver) {
+        var $this = this;
+
+        $this.inningTimeCount.pauseTime();
+
+        gamePopBox.show('游戏进行中，是否退出?', gamePopBox.CONFIRM_MODE, '', function (idx) {
+          if (idx === 0) {
+            pageBack();
+          } else {
+            $this.inningTimeCount.startTime();
+          }
+        });
+      } else {
+        pageBack();
+      }
+    },
+    resetMetaData: function () {
+      this.modInningCnt(0);
+
+      this.modCount('PLAYER', 'win', 0);
+      this.modCount('PLAYER', 'lose', 0);
+      this.modCount('PLAYER', 'draw', 0);
+
+      this.modCount('NPC', 'win', 0);
+      this.modCount('NPC', 'lose', 0);
+      this.modCount('NPC', 'draw', 0);
+
+      return this;
+    },
+    printNum: function (num) {
+      var individual = ('' + num).split(''),
+          result = [], i, len = individual.length;
+
+      for (i = 0; i < len; i += 1) {
+        result.push('<img src="images/nums/b1Num' + individual[i] + '.png" width="17" height="22" \/>');
+      }
+
+      return result.join('');
+    },
+    // 初始化计时对象
+    initTimeCount: function () {
+      var inningParam = {                 // 计时对象参数
+        showId    : "t1_",                // 显示的ID
+        showPicUrl: "images/nums/",       // 显示图片路径
+        picName   : "ctdNum",             // 图片名称
+        startTime : 0,                    // 计时最大值
+        countLen  : 1000                  // 计时长度，每分一次
+      };
+
+      this.inningTimeCount = new TimeCount(inningParam);
+      this.inningTimeCount.warnning = bind(this.inningEnd, this);
+    },
+    // 本局时间结束回调函数
+    inningEnd: function () {
+      this.judgeAsDraw();
+    },
+    // 初始化状态
+    initState: function () {
+      this.isGameOver = false;
+      this.isStart    = true;
+
+      this.steps = '#';
+
+      this.currPlayer = 'PLAYER';
+      this.initGridBoard(); // 初始化网格棋盘
+      this.initPieces();  // 生成所有棋子
+      this.clearHalos();  // 清除光环
+      this.resetFocusIdx();
+
+      return this;
+    },
+
+    clearTurnView: function () {
+      $('playerReadyFirst').style.visibility = 'hidden';
+      $('npcReadyFirst').style.visibility = 'hidden';
+      $('playerReady').style.visibility = 'hidden';
+      $('npcReady').style.visibility = 'hidden';
+      $('playerTurn').style.visibility = 'hidden';
+      $('npcTurn').style.visibility = 'hidden';
+      $('lblStateTips').innerHTML = '';
+    },
+
+    // 初始化网格棋盘
+    initGridBoard: function () {
+      var i;
+
+      this.gridBoard = [];  // reset outer array
+      for (i = 0; i < this.width; i += 1) {
+        this.gridBoard[i] = []; // reset inner array
+      }
+
+      return this;
+    },
+
+    // 生成所有棋子
+    initPieces: function () {
+      var pieces = [], i, len = this.width * this.height;
+
+      this.pieceCount   = 0;  // 重置棋计数索引
+      this.falledPieces = []; // 重置已落棋子
+      for (i = 0; i < len; i += 1) {
+        pieces.push('<img id="piece' + i + '" src="images/transparent.gif" style="left: 285px; top: 58px; opacity: 0;" \/>');
+      }
+
+      $('piecesContainer').innerHTML = pieces.join(''); // 放置所有棋子
+      return this;
+    },
+
+    // 重置焦点框索引
+    resetFocusIdx: function () {
+      this.setFocusIdx(3);  // 居中
+      return this;
+    },
+
+    // 水平移动棋子焦点框坐标
+    horizMove: function (__offset) {
+      switch (__offset) {
+      case -1:  // 左移
+        if (this.focusIdx > 0) this.setFocusIdx(this.focusIdx - 1);
+        break;
+      case 1:
+        if (this.focusIdx < this.width - 1) {
+          this.setFocusIdx(this.focusIdx + 1);
+        } else {
+          focusArea = appEnums.CMD_AREA;
+          $('fbRow').style.opacity = 0;
+          cmdShift.showFocus();
+        }
+        break;
+      }
+      return this;
+    },
+    // 切换选手落棋
+    swapPlayer: function () {
+      if (this.currPlayer === 'PLAYER') this.currPlayer = 'NPC';
+      else this.currPlayer = 'PLAYER';
+
+      $('gameOverElement').style.backgroundImage = this[this.currPlayer].winIcon;
+
+      this.updateTurnView();
+      this.showNextPiece();
+
+      if (this.currPlayer === 'NPC') {
+        var $this = this;
+        window.setTimeout(function () {
+          // ~~~~~~~~
+          var moveColumn = $this.memos[$this.steps];
+
+          if (typeof(moveColumn) !== 'number') {
+            $this.memos[$this.steps] = moveColumn = bestMove($this.board, 800, $this.board.currentPlayer);
+          }
+
+          $this.deleFallPiece(moveColumn);
+        }, 400);
+
+      }
+    },
+    // 悔棋操作
+    undo: function () {
+      if (!this.isGameOver) {
+        if (this.currPlayer === 'NPC') return this.warn('当前为电脑下棋，你不可悔棋！');
+        if (this.falledPieces.length < 2) return this.warn('当前状态不可进行悔棋操作！');
+
+        var pieceCount = this.pieceCount;
+
+        this.clearHalos();
+
+        $('piece' + pieceCount).id = 'piece_TMP'; // 临时更改当前棋子id
+
+        this.setProp('piece' + (pieceCount - 1), {
+          id     : 'piece' + pieceCount,
+          left   : 285,
+          top    : 58,
+          opacity: 0
+        }).setProp('piece' + (pieceCount - 2), {
+          id     : 'piece' + (pieceCount - 1),
+          left   : 285,
+          top    : 58,
+          opacity: 0
+        }); // 撤销前两颗棋子
+
+        this.pieceCount -= 2;
+
+				this.steps = this.steps.slice(0, -2);	// 移除两步
+
+        $('piece_TMP').id = 'piece' + this.pieceCount;  // 还原当前棋子id
+
+        var i, falledPiece;
+        for (i = 0; i < 2; i += 1) {
+          falledPiece = this.falledPieces.pop();
+          this.gridBoard[falledPiece[0]].pop();
+
+          this.board.moves.pop();
+          this.board.movesGrid[falledPiece[0]].pop();
+        }
+      } else {
+        return this.warn('当前状态不可进行悔棋操作！');
+      }
+    },
+    // 更新局数
+    modInningCnt: function (newValue) {
+      var high =0, low = 0;
+
+      this.currInningCnt = newValue;
+
+      if (newValue > 10) {
+        high = Math.floor(newValue / 10);
+        low = newValue % 10;
+      } else {
+        low = newValue;
+      }
+
+      $('r0').src = 'images/nums/ctdNum' + low + '.png';
+      $('r1').src = 'images/nums/ctdNum' + high + '.png';
+    },
+    // 更新选手计数
+    modCount: function (player, whichCnt, value) {
+      switch (player) {
+      case 'PLAYER':
+        switch (('' + whichCnt).toLowerCase()) {
+        case 'win':
+          this[player].winCnt = value;
+          $('playerWinCnt').innerHTML = this.printNum(value);
+          break;
+        case 'lose':
+          this[player].loseCnt = value;
+          $('playerLoseCnt').innerHTML = this.printNum(value);
+          break;
+        case 'draw':
+          this[player].drawCnt = value;
+          $('playerDrawCnt').innerHTML = this.printNum(value);
+          break;
+        }
+        break;
+      case 'NPC':
+        switch (('' + whichCnt).toLowerCase()) {
+        case 'win':
+          this[player].winCnt = value;
+          $('npcWinCnt').innerHTML = this.printNum(value);
+          break;
+        case 'lose':
+          this[player].loseCnt = value;
+          $('npcLoseCnt').innerHTML = this.printNum(value);
+          break;
+        case 'draw':
+          this[player].drawCnt = value;
+          $('npcDrawCnt').innerHTML = this.printNum(value);
+          break;
+        }
+        break;
+      }
+    },
+    updateTurnView: function () {
+      switch (this.currPlayer) {
+      case 'PLAYER': // 橙棋(1P)
+        if (this.isStart) {
+          this.isStart = false;
+          $('playerReadyFirst').style.visibility = 'visible';
+          $('npcReady').style.visibility = 'hidden';
+          $('lblStateTips').innerHTML = '你先下';
+        } else {
+          $('npcReadyFirst').style.visibility = 'hidden';
+          $('playerReady').style.visibility = 'visible';
+          $('npcReady').style.visibility = 'hidden';
+          $('lblStateTips').innerHTML = '轮到你下';
+        }
+
+        $('playerTurn').style.visibility = 'visible';
+        $('npcTurn').style.visibility = 'hidden';
+
+        break;
+      case 'NPC': // 蓝棋(2P)
+        if (this.isStart) {
+          this.isStart = false;
+          $('playerReady').style.visibility = 'hidden';
+          $('npcReadyFirst').style.visibility = 'visible';
+          $('lblStateTips').innerHTML = '电脑先下';
+        } else {
+          $('playerReadyFirst').style.visibility = 'hidden';
+          $('playerReady').style.visibility = 'hidden';
+          $('npcReady').style.visibility = 'visible';
+          $('lblStateTips').innerHTML = '轮到电脑下';
+        }
+
+        $('playerTurn').style.visibility = 'hidden';
+        $('npcTurn').style.visibility = 'visible';
+        break;
+      }
+
+      return this;
+    },
+    // 是否还有没落的棋子
+    hasPiece: function () {
+      return this.pieceCount < this.width * this.height;
+    },
+    // 显示下一颗棋子
+    showNextPiece: function () {
+      return this.setProp('piece' + this.pieceCount, {
+        src: this[this.currPlayer].pieceIcon,
+        opacity: 1,
+        left: this.pieceX[this.focusIdx]
+      });
+    },
+    // 判断当前列是否可以落棋
+    canFall: function () {
+      return !this.isGameOver && this.gridBoard[this.focusIdx][this.height - 1] == null;
+    },
+    // AI落棋
+    deleFallPiece: function (column) {
+      var mark = this[this.currPlayer].mark
+          row  = this.gridBoard[column].length;
+
+      this.steps += column;
+      this.board.play(column);
+      this.falledPieces.push([column, row]); // 记录已落棋子的坐标，供悔棋操作
+      this.gridBoard[column].push(mark);
+
+      var $piece = $('piece' + this.pieceCount),
+          $this = this;
+
+      $piece.style.left = this.pieceX[column] + 'px';
+
+      window.setTimeout(function () {
+        $piece.style.top = $this.pieceY[row] + 'px';
+
+        //$this.blinkHalo(column, row);
+        $this.pieceCount += 1; // 标记已落一颗棋
+
+        var result;
+        if (result = $this.checkWin(column, row)) {
+          $this.gameOver();
+          $this.showConnectHalos(result);
+        } else if (!$this.hasPiece()) {
+          $this.judgeAsDraw();
+        } else {
+          $this.swapPlayer();  // 轮换选手
+        }
+      }, 400);
+    },
+    // 落棋
+    fallPiece: function () {
+      if (this.canFall()) { // 当前列是否可以落棋
+        if (this.currPlayer !== 'PLAYER') return this.warn('当前为电脑下棋！');
+
+        var mark  = this[this.currPlayer].mark,
+            lastX = this.focusIdx,
+            lastY = this.gridBoard[this.focusIdx].length;
+
+        this.steps += lastX;
+        this.board.play(lastX);
+
+        this.falledPieces.push([lastX, lastY]); // 记录已落棋子的坐标，供悔棋操作
+        $('piece' + this.pieceCount).style.top = this.pieceY[lastY] + 'px';
+        this.gridBoard[this.focusIdx].push(mark);
+        //this.blinkHalo(lastX, lastY);
+
+        this.pieceCount += 1; // 标记已落一颗棋
+
+        var result;
+        if (result = this.checkWin(lastX, lastY)) {
+          this.gameOver();
+          this.showConnectHalos(result);
+        } else if (!this.hasPiece()) {
+          this.judgeAsDraw();
+        } else {
+          this.swapPlayer();  // 轮换选手
+        }
+      } else if (!this.isGameOver) {
+        this.warn('当前列已满棋，不可再落棋了！');
+      }
+
+      return this;
+    },
+    // 判断为平局
+    judgeAsDraw: function () {
+      this.gameOver();
+      $('gameOverElement').style.backgroundImage = this.drawIcon;
+      this.modCount('PLAYER', 'draw', this['PLAYER'].drawCnt + 1);
+      this.modCount('NPC', 'draw', this['NPC'].drawCnt + 1);
+
+      this.animGameOver(function (self) {
+        self.start();
+      });
+    },
+    at: function (x, y) {
+      return this.gridBoard[x][y];
+    },
+    gameOver: function () {
+      this.isGameOver = true;
+      this.clearTurnView();
+      this.inningTimeCount.stopTime();
+    },
+    // 判断输赢
+    checkWin: function (lastX, lastY) {
+      // 只需核对最后落棋周围的棋子是否与该棋共线即可
+      var player = this.at(lastX, lastY),
+          x1, y1, x2, y2,
+          result = [[lastX, lastY]];
+
+      //
+      // 测试水平方向是否有赢
+      //
+      var horizResult = [], horizWin = false;
+      x1 = x2 = lastX;
+      // 向右
+      while (x1 < this.width - 1 && this.at(++x1, lastY) === player) {
+        horizResult.push([x1, lastY]);
+      }
+      // 向左
+      while (x2 > 0 && this.at(--x2, lastY) === player) {
+        horizResult.push([x2, lastY]);
+      }
+      // 是否赢了？
+      if (horizResult.length >= this.toWin - 1) horizWin = true;
+      else horizResult = [];
+
+      //
+      // 测试垂直方向是否有赢
+      //
+      var vertResult = [], vertWin = false;
+      y1 = y2 = lastY;
+      // 向上
+      while (y1 < this.height - 1 && this.at(lastX, ++y1) === player) {
+        vertResult.push([lastX, y1]);
+      }
+      // 向下
+      while (y2 > 0 && this.at(lastX, --y2) === player) {
+        vertResult.push([lastX, y2]);
+      }
+      // 是否赢了？
+      if (vertResult.length >= this.toWin - 1) vertWin = true;
+      else vertResult = [];
+
+      //                       X
+      // 测试反斜对角是否有赢 ==>  X
+      //                          X
+      var backDiagonalResult = [], backDiagonalWin = false;
+      x1 = x2 = lastX;
+      y1 = y2 = lastY;
+      // 向右下角
+      while (y1 > 0 && x1 < this.width - 1 && this.at(++x1, --y1) === player) {
+        backDiagonalResult.push([x1, y1]);
+      }
+      // 向左上角
+      while (y2 < this.height - 1 && x2 > 0 && this.at(--x2, ++y2) === player) {
+        backDiagonalResult.push([x2, y2]);
+      }
+      // 是否赢了？
+      if (backDiagonalResult.length >= this.toWin - 1) backDiagonalWin = true;
+      else backDiagonalResult = [];
+
+      //                          X
+      // 测试斜对角是否有赢 ==>    X
+      //                       X
+      var diagonalResult = [], diagonalWin = false;
+      x1 = x2 = lastX;
+      y1 = y2 = lastY;
+      // 向左下角
+      while (y1 > 0 && x1 > 0 && this.at(--x1, --y1) === player) {
+        diagonalResult.push([x1, y1]);
+      }
+      // 向右上角
+      while (y2 < this.height - 1 && x2 < this.width - 1 && this.at(++x2, ++y2) === player) {
+        diagonalResult.push([x2, y2]);
+      }
+      // 是否赢了？
+      if (diagonalResult.length >= this.toWin - 1) diagonalWin = true;
+      else diagonalResult = [];
+
+      if (horizWin || vertWin || backDiagonalWin || diagonalWin) {
+        return result.concat(horizResult, vertResult, backDiagonalResult, diagonalResult);
+      } else {
+        // 所有判断都没赢
+        return false;
+      }
+    },
+    showConnectHalos: function (halos) {
+      var haloIcon = this[this.currPlayer].haloIcon,
+          haloX    = this.haloX,
+          haloY    = this.haloY,
+          content  = [],
+          haloItem = null,
+          haloNums = halos.length,
+          i, x, y;
+
+      for (i = 0; i < haloNums; i += 1) {
+        haloItem = halos[i];
+        x = haloX[haloItem[0]],
+        y = haloY[haloItem[1]],
+
+        content.push('<img id="halo' + i + '" src="' + haloIcon + '" width="85" height="84" style="left:' + x + 'px; top:' + y +'px;" \/>');
+      }
+
+      $('haloContainer').innerHTML = content.join('');  // 显示光环
+      this.blinkHalos();
+    },
+    clearHalos: function () {
+      $('haloContainer').innerHTML = '';
+    },
+    // 闪烁光环
+    blinkHalos: function () {
+      var $this = this,
+          $haloContainer = $('haloContainer'),
+          i = 0;
+
+      window.clearInterval($this.blinkTId);
+
+      $this.blinkTId = window.setInterval(function () {
+        $haloContainer.style.opacity = i++ % 2 ? 1 : 0;
+
+        if (i > 12) {
+          window.clearInterval($this.blinkTId);
+          $haloContainer.style.opacity = 1;
+
+          var currPlayer = $this.currPlayer,
+              anotherPlayer = (currPlayer === 'PLAYER') ? 'NPC' : 'PLAYER';
+
+          if (currPlayer === 'PLAYER')
+            $this.memos = {}; // clear memos
+
+          $this.modCount(currPlayer, 'win', $this[currPlayer].winCnt + 1);
+          $this.modCount(anotherPlayer, 'lose', $this[anotherPlayer].loseCnt + 1);
+          $this.animGameOver(function (self) {
+            self.start();
+          });
+        }
+      }, 80);
+    },
+    blinkHalo: function (x, y) {
+      var $this = this,
+          haloIcon = this[this.currPlayer].haloIcon,
+          $haloContainer = $('haloContainer'),
+          i = 0;
+
+      $haloContainer.innerHTML = '<img src=' + haloIcon + ' width="85" height="84" style="left:' + this.haloX[x] + 'px; top:' + this.haloY[y] +'px;" \/>';
+
+      window.clearInterval($this.haloId);
+
+      $this.haloId = window.setInterval(function () {
+        $haloContainer.style.opacity = i++ % 2 ? 1 : 0;
+
+        if (i > 6) {
+          window.clearInterval($this.haloId);
+          $haloContainer.style.opacity = 1;
+        }
+      }, 80);
+    },
+    // 设置棋盘焦点框坐标
+    setFocusIdx: function (__newIdx) {
+      var $piece = $('piece' + this.pieceCount);
+
+      this.focusIdx = __newIdx;
+      (this.rowBoxStyle = this.rowBoxStyle || $('fbRow').style).left = this.boxX[this.focusIdx] + 'px';
+      if ($piece && this.currPlayer === 'PLAYER') $piece.style.left = this.pieceX[this.focusIdx] + 'px';  // 同时设置当前操作的棋子的位置
+
+      return this;
+    },
+    setProp: function (target, mixin, fork) {
+      var prop, propValue, $target = $(target);
+
+      if (typeof(mixin) === 'string') mixin = {mixin: fork};
+      for (prop in mixin) {
+        propValue = mixin[prop];
+
+        if (/^(left|top|width|height)$/.test(prop)) propValue += 'px';
+        if (/^(id|src|innerText|innerHTML)$/.test(prop)) {
+          $target[prop] = propValue;
+        } else {
+          $target.style[prop] = propValue;
+        }
+      }
+
+      return this;
+    },
+    warn: function (__text) {
+      var $this = this;
+      window.clearTimeout($this.warnId);
+      window.clearTimeout($this.dismissId);
+
+      $this.warnId = window.setTimeout(function () {
+        $('popTextContent').innerHTML = __text;
+        $this.setProp('popTextTipsContainer', {
+          opacity: 1,
+          top    : 280
+        });
+        $this.dismissId = window.setTimeout(function () {
+          $this.setProp('popTextTipsContainer', {
+            opacity: 0,
+            top    : 300
+          });
+        }, 1000); // 1秒后隐藏
+      }, 100);
+
+      return this;
+    },
+    animGameStart: function (__callBack) {
+      var $this = this;
+      window.clearTimeout($this.gameStartId);
+      window.clearTimeout($this.gameStartId2);
+
+      $this.gameStartId = window.setTimeout(function () {
+        $this.setProp('gameStartElement', {
+          opacity: 1,
+          top: 220
+        });
+        $this.gameStartId2 = window.setTimeout(function () {
+          $this.setProp('gameStartElement', {
+            opacity: 0,
+            top: 260
+          });
+
+          if (typeof(__callBack) === 'function') __callBack($this);
+        }, 1000); // 1秒后隐藏
+      }, 400);
+
+      return this;
+    },
+    animGameOver: function (__callBack) {
+      var $this = this;
+      window.clearTimeout($this.gameOverId);
+      window.clearTimeout($this.gameOverId2);
+
+      $this.gameOverId = window.setTimeout(function () {
+        $this.setProp('gameOverElement', {
+          opacity: 1,
+          top    : 200
+        });
+
+        $this.gameOverId2 = window.setTimeout(function () {
+          $this.setProp('gameOverElement', {
+            opacity: 0,
+            top    : 160
+          });
+
+          if (typeof(__callBack) === 'function') __callBack($this);
+        }, 1000); // 1秒后隐藏
+      }, 400);
+
+      return this;
+    }
+  };
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // 最佳落棋列搜索
+
+  // 寻找最佳落棋列
+  function bestMove(board, samples, player) {
+    var best = { column: null, rate: 0 },
+        testBoard;
+
+    for (var col = 0, columns = boardRules.columns; col < columns; col += 1) {
+      if (board.canPlay(col)) { // 遍历所有可落棋的列
+        testBoard = board.copy();
+        testBoard.play(col);
+
+        var rate = winRate(testBoard, samples, player);
+        if (rate >= best.rate) {
+          best.rate = rate;
+          best.column = col;
+        }
+      }
+    }
+
+    return best.column;
+  }
+
+  function winRate(board, samples, player) {
+    var wins = [0, 0];
+
+    for (var i = 0; i < samples; ++i) {
+      var testBoard = board.copy(),
+          results   = playout(testBoard);
+
+      wins[players.one] += results[players.one];
+      wins[players.two] += results[players.two];
+    }
+
+    return wins[player] / (wins[players.one] + wins[players.two]);
+  }
+
+  function playout(board) {
+    while (!board.isDraw() && !board.isWon())
+      board.playRandomColumn();
+
+    if (board.isDraw())
+      return [0.5, 0.5];
+    else if (board.winner() === players.one)
+      return [1, 0];
+    else
+      return [0, 1];
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // 四子棋棋盘对象
+
+  function Board() {
+    this.currentPlayer = players.one;
+    this.movesGrid     = replicate(function () { return []; }, boardRules.columns);
+    this.moves         = [];
+  }
+
+  Object.extend(Board.prototype, {
+    copy: function () {
+      var b     = new Board(),
+          moves = this.moves;
+
+      for (var i = 0, len = moves.length; i < len; i += 1) {
+        b.play(moves[i].column);
+      }
+
+      return b;
+    },
+
+    playRandomColumn: function () {
+      var validColumns = [];
+
+      for (var col = 0; col < this.movesGrid.length; ++col)
+        if (this.canPlay(col))
+          validColumns.push(col);
+
+      var chosenColumn = validColumns[Math.floor(Math.random() * validColumns.length)];
+      this.play(chosenColumn);
+    },
+
+    canPlay: function (column) {
+      return this.movesGrid[column].length < boardRules.rows;
+    },
+
+    play: function (column) {
+      function otherPlayer(player) {
+        if (player === players.one) return players.two;
+        else return players.one;
+      }
+
+      if (!this.canPlay(column))
+        return;
+
+      this.playerMove(this.currentPlayer, column);
+      this.currentPlayer = otherPlayer(this.currentPlayer);
+    },
+
+    playerMove: function (player, column) {
+      this.moves.push({ 'player': player, 'column': column });
+      this.movesGrid[column].push(player);
+    },
+
+    isOver: function () {
+      return this.isDraw() || this.isWon();
+    },
+
+    isDraw: function () {
+      return this.moves.length === boardRules.rows * boardRules.columns && !this.isWon();
+    },
+
+    isWon: function () {
+      return this.findConnected().length > 0;
+    },
+
+    findConnected: function () {
+      var lastMove = this.lastMove();
+      if (lastMove === null)
+        return false;
+
+      lastMove.row = this.movesGrid[lastMove.column].length - 1;
+      var self = this;
+
+      function find(dRow, dCol) {
+        var connected = [{
+          'row'   : lastMove.row,
+          'column': lastMove.column
+        }];
+
+        function straightFind(dRow, dCol) {
+          var row = lastMove.row + dRow,
+              col = lastMove.column + dCol;
+
+          while (col >= 0 && col < boardRules.columns
+               && row >= 0 && row < self.movesGrid[col].length
+               && self.movesGrid[col][row] === lastMove.player) {
+            connected.push({
+              'row': row,
+              'column': col
+            });
+            row += dRow;
+            col += dCol;
+          }
+        }
+
+        straightFind(dRow, dCol);
+        straightFind(-dRow, -dCol);
+
+        return connected;
+      }
+
+      var inColumn = find(1, 0);
+      if (inColumn.length >= boardRules.connect)
+        return inColumn;
+
+      var inRow = find(0, 1);
+      if (inRow.length >= boardRules.connect)
+        return inRow;
+
+      var inDiag1 = find(-1, 1);
+      if (inDiag1.length >= boardRules.connect)
+        return inDiag1;
+
+      var inDiag2 = find(1, 1);
+      if (inDiag2.length >= boardRules.connect)
+        return inDiag2;
+
+      return [];
+    },
+
+    lastMove: function () {
+      if (this.moves.length > 0)
+        return this.moves[this.moves.length - 1];
+      else
+        return null;
+    },
+
+    winner: function () {
+      if (this.isWon())
+        return this.lastMove().player;
+      else
+        return null;
+    }
+  });
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Utils
+
+  function replicate(elem, n) {
+    var arr = [];
+    while (n-- > 0)
+      arr.push(elem());
+    return arr;
+  }
+
+  return context;
+
+}());
+
+/*========================= TimeCount BEGIN =========================*/
+//计时对象[00：00]
+function TimeCount(_parm) {
+  this.$ = function (_id) {
+    return document.getElementById(_id);
+  };
+  this.showId = _parm.showId; //显示ID
+  this.countTime = typeof(_parm.startTime) == "undefined" ? 0 : _parm.startTime; //计时的秒数，初始化时为起始秒数
+  this.countTimeNum = this.countTime;
+  this.picName = _parm.picName;
+  this.countLength = parseInt(_parm.countLen, 10); //计时长度：分或秒
+  this.showPicUrl = _parm.showPicUrl;
+  //this.maxTime = _parm.maxTime;
+  this.timeText = " "; //时间文本
+  this.timeArr = []; //时间数组
+  this.timeIsCount = false;
+  this.st = -1;
+  this.warnning = function () {}; //超出计时范围的提醒
+  //开始计时
+  this.startTime = function () {
+    if (this.countTimeNum <= 0) {
+      this.countTime += 1;
+    } else {
+      this.countTime -= 1;
+    }
+    if(this.countTime >= 3599 && this.countTimeNum == 0 && this.countLength === 1000){
+      this.countTime = this.countTimeNum;
+    }
+    if (this.countTime < 0) {
+      this.pauseTime();
+      this.warnning(); //超出计时承受范围，提醒
+      return;
+    }
+    this.timeIsCount = true;
+    var _this = this;
+    this.printTime(this.countTime);
+    this.st = setTimeout(function () {
+      _this.startTime();
+    }, this.countLength)
+  };
+  this.restartTime = function () {
+    clearTimeout(this.st);
+    this.countTime = this.countTimeNum;
+    this.startTime();
+  };
+  //暂停
+  this.pauseTime = function () {
+    clearTimeout(this.st);
+    this.timeIsCount = false;
+    this.st = -1;
+  };
+  //停止，
+  this.stopTime = function () {
+    this.countTime = 0;
+    this.printTime(0);
+    clearTimeout(this.st);
+    this.timeIsCount = false;
+    this.st = -1;
+  };
+  //打印时间
+  this.printTime = function (_num) {
+    this.timeArr = this.changeTimeFormat(_num);
+    for (var i = 0; i < 4; i++) {
+      $(this.showId + i).src = this.showPicUrl + this.picName + this.timeArr[i + 2] + ".png";
+    }
+  };
+  //格式化时间
+  this.changeTimeFormat = function (_num) {
+    var hour = Math.floor(_num / 3600);
+    var minutes = Math.floor((_num - hour * 3600) / 60);
+    var seconds = _num - 3600 * hour - 60 * minutes;
+    var _timeArr = [];
+    if (hour < 10) {
+      _timeArr.push(0, hour);
+    } else {
+      _timeArr.push(Math.floor(hour / 10), hour % 10);
+    }
+    if (minutes < 10) {
+      _timeArr.push(0, minutes);
+    } else {
+      _timeArr.push(Math.floor(minutes / 10), minutes % 10);
+    }
+    if (seconds < 10) {
+      _timeArr.push(0, seconds);
+    } else {
+      _timeArr.push(Math.floor(seconds / 10), seconds % 10);
+    }
+    return _timeArr;
+  };
+}
+/*========================= TimeCount END =========================*/
+
+/*========================= gamePopBox BEGIN =========================*/
+var gamePopBox = {
+  _visible: false,
+  CONFIRM_MODE: 0,
+  RESTART_MODE: 1,
+  GAMEOVER_MODE: 2,
+  popMode: 0,
+  focPosSite: [42, 249],
+  focPos: 0,
+  btnImg: [
+    [
+      ["images/popbox/gameOverBtn0_0.png", "images/popbox/gameOverBtn0_1.png"],
+      ["images/popbox/gameOverBtn1_0.png", "images/popbox/gameOverBtn1_1.png"]
+    ],
+    [
+      ["images/popbox/gamePopOverBtn0_0.png", "images/popbox/gamePopOverBtn0_1.png"],
+      ["images/popbox/gameOverBtn1_0.png", "images/popbox/gameOverBtn1_1.png"]
+    ],
+    [
+      ["images/popbox/gamePopOverBtn0_0.png", "images/popbox/gamePopOverBtn0_1.png"],
+      ["images/popbox/gamePopOverBtn1_0.png", "images/popbox/gamePopOverBtn1_1.png"]
+    ]
+  ],
+  titleTxt: "温馨提示",
+  tipTxt: "",
+  $func: function () {},
+  show: function (_tip, _mode, _ttl, _func) {
+    this._visible = true;
+    if (!(_ttl == "" || _ttl == "undefined")) this.titleTxt = _ttl;
+    if (typeof (_func) === 'function') this.$func = _func;
+    this.tipTxt = _tip;
+    this.popMode = _mode;
+    this.showBtn(_mode);
+    this.$id("gamePopTitle").innerText = this.titleTxt;
+    this.$id("gamePopTip").innerText = this.tipTxt;
+    this.chv("gamePopBox", true);
+    this.moveBtn(0);
+  },
+  showBtn: function (_mode) {
+    this.$id("gamePopBtn0").src = this.btnImg[_mode][0][0];
+    this.$id("gamePopBtn1").src = this.btnImg[_mode][1][0];
+  },
+  moveBtn: function (_num) {
+    if (this.focPos + _num > 1 || this.focPos + _num < 0) return;
+    this.$id("gamePopBtn" + this.focPos).src = this.btnImg[this.popMode][this.focPos][0];
+    this.focPos += _num;
+    this.$id("gamePopBtn" + this.focPos).src = this.btnImg[this.popMode][this.focPos][1];
+    this.$id("gamePopBtnFoc").style.left = this.focPosSite[this.focPos] + "px";
+  },
+  hide: function () {
+    this._visible = false;
+    this.titleTxt = "温馨提示";
+    this.tipTxt = "";
+    this.popMode = 0;
+    this.$id("gamePopTitle").innerText = " ";
+    this.$id("gamePopTip").innerText = " ";
+    this.focPos = 0;
+    this.chv("gamePopBox", false);
+  },
+  doBtn: function () {
+    var s = this.focPos;
+    var m = this.popMode;
+    this.hide();
+    this.$func(s);
+    if (m == this.GAMEOVER_MODE && s == 1) {
+      pageBack();
+    }
+  },
+  responseEnabled: function () {
+    return this._visible;
+  },
+  response: function (__keyCode) {
+    if (__keyCode == 13) { //点击确定关闭提示框
+      this.doBtn();
+    } else if (__keyCode == 3) { //左移动
+      this.moveBtn(-1);
+    } else if (__keyCode == 4) { //右移动
+      this.moveBtn(1);
+    } else if (__keyCode == 1) { //上
+
+    } else if (__keyCode == 2) { //下
+
+    } else if (__keyCode == 340) { //返回
+      this.focPos = 1;
+      this.doBtn();
+    }
+  },
+  chv: function (e, bool) {
+    this.$id(e).style.visibility = bool ? 'visible' : 'hidden';
+  },
+  $id: function (id) {
+    return typeof (id) === 'string' ? document.getElementById(id) : id;
+  }
+};
+/*========================= gamePopBox END =========================*/
+
+function $(id) {
+  return typeof(id) === 'string' ? document.getElementById(id) : id;
+}
+
+/*========================= popBoxUtil BEGIN =========================*/
+var popBoxUtil = {
+  _visible: false,  //弹出框是否已显示
+  _idx: 0,      //0:确认, 1:取消
+  _cdx: [47, 237],  //焦点框x轴坐标值
+  show: function (__tooltip, __func) {
+    this._visible || (this._visible = true, this.$chv('popbox2Shadow', true), this.$chv('popbox2Container', true));
+    this.$id('popbox2Text').innerText = __tooltip;
+    !!(this._idx = 0) || this.$chp(); //改变焦点框位置
+    typeof(__func) === 'function' && (this.$func = __func);
+  },
+  hide: function () { this._visible && (this._visible = false, this.$chv('popbox2Shadow', false), this.$chv('popbox2Container', false)); },
+  responseEnabled: function () { return this._visible; },
+  response: function (__keyCode) {
+    __keyCode === 3 ? this.$offset(-1) : __keyCode === 4 ? this.$offset(1) : __keyCode === 13 ? (!!($this = this) && (function () {
+      $this.hide(); //隐藏弹框
+      $this.$confirm() && $this.$func && $this.$func();
+    })()) : void 0;
+  },
+  $offset: function (__val) {
+    __val < 0 && this._idx === 1 ? (!!(this._idx = 0) || this.$chp()) : __val > 0 && this._idx === 0 ? (!!(this._idx = 1) && this.$chp()) : void 0;
+  },
+  $confirm: function () { return !this._idx; },
+  $chp: function () { this.$id('popbox2Confirm').style.left = this._cdx[this._idx] + 'px'; },
+  $chv: function (e, bool) { this.$id(e).style.visibility = bool ? 'visible' : 'hidden'; },
+  $id: function (id) { return typeof(id) === 'string' ? document.getElementById(id) : id; }
+};
+/*========================= popBoxUtil END =========================*/
+
+/*========================= broadin namespace begin [2.1.7] =========================*/
+var broadin = (function () {
+  var mdlwares = {COSHIP: 0, iPANEL: 1, SUMA_VISION: 2, CNTV: 3, DVN: 4, HUAWEI: 5, ANDROID: 6, JILIN: 7, GUANGDONG: 8};
+  var client = mdlwares.SUMA_VISION;    //运行环境客户端(默认SUMA_VISION)
+  return {
+    MIDDELWARES: function () { return mdlwares; },
+    setClient: function (__middleware) { client = Math.min(Math.max(0, __middleware), 8); },
+    getClient: function () { return client; }
+  };
+}());
+var __mwAgent__ = navigator.userAgent.toLowerCase();
+if (__mwAgent__.indexOf('android') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['ANDROID']);
+} else if (__mwAgent__.indexOf('coship') > -1) {
+  if (typeof(CA.serialNumber) !== 'undefined') {
+    broadin.setClient(broadin.MIDDELWARES()['JILIN']);
+  } else if (typeof(CA.icNo) !== 'undefined') {
+    broadin.setClient(broadin.MIDDELWARES()['GUANGDONG']);
+  } else {
+    broadin.setClient(broadin.MIDDELWARES()['COSHIP']);
+  }
+} else if (__mwAgent__.indexOf('hi3110') > -1 || __mwAgent__.indexOf('i686') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['HUAWEI']);
+} else if (__mwAgent__.indexOf('ipad') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['SUMA_VISION']);
+} else if (__mwAgent__.indexOf('gefo') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['CNTV']);
+} else if (__mwAgent__.indexOf('ipanel') > -1) {
+  if (typeof(CITV) !== 'undefined') {
+    broadin.setClient(broadin.MIDDELWARES()['JILIN']);
+  } else if (typeof(TS) !== 'undefined') {
+    broadin.setClient(broadin.MIDDELWARES()['GUANGDONG']);
+  } else {
+    broadin.setClient(broadin.MIDDELWARES()['iPANEL']);
+  }
+} else if (__mwAgent__.indexOf('firefox') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['DVN']);
+} else if (__mwAgent__.indexOf('3h-') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['GUANGDONG']);
+} else if (__mwAgent__.indexOf('zte') > -1) {
+  broadin.setClient(broadin.MIDDELWARES()['HUAWEI']);
+}
+var __mwPlatform__ = broadin.getClient();
+broadin.mp3 = {
+  player: null,   //音频播放对象
+  instanceId: -1,   //播放器实例ID
+  pageURI: '',
+  isStopped: false,
+  isInitialized: false,
+  initialize: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      this.pageURI = this.getPageURI();
+      if (this.instanceId === -1) {
+        this.player = new MediaPlayer();
+        this.instanceId = this.player.getNativePlayerInstanceId();
+        this.player.setAllowTrickmodeFlag(0);
+      }
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      this.pageURI = this.getPageURI();
+      this.player = window.multimedia.videoplayer;
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      this.pageURI = this.getPageURI();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      MP3.setProperty('beginData', '64');
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      this.pageURI = this.getPageURI();
+      if (this.instanceId === -1) {
+        this.player = new MediaPlayer();
+        this.instanceId = this.player.createPlayerInstance('Audio', 0);
+      }
+      break;
+    case broadin.MIDDELWARES()['ANDROID']:
+      this.pageURI = this.getPageURI();
+      if (this.instanceId === -1) {
+        this.player = MediaPlayer;
+        this.instanceId = this.player.createPlayerInstance('Audio', 0);
+      }
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      this.pageURI = this.getPageURI();
+      if (this.instanceId === -1) {
+        this.player = new MediaPlayer();
+        this.instanceId = this.player.getNativePlayerInstanceID();
+        this.player.setAllowTrickmodeFlag(0);
+      }
+      break;
+    }
+    this.isInitialized = true;
+  },
+  getPageURI: function () {
+    var tmpURI = window.location.href;
+    var pos = tmpURI.indexOf('.htm');
+    return pos >= 0 ? tmpURI.slice(0, tmpURI.slice(0, pos).lastIndexOf('/') + 1) : tmpURI.slice(0, tmpURI.lastIndexOf('/') + 1);
+  },
+  play: function (__audioURI) {
+    if (!this.isInitialized) { this.initialize(); }
+    __audioURI = __audioURI.indexOf('http://') >= 0 ? __audioURI : this.pageURI + __audioURI;
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      this.player.setSingleMedia(__audioURI);
+      this.player.playFromStart();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      MP3.open(__audioURI);
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      this.player.unBindPlayerInstance();
+      this.player.bindPlayerInstance(this.instanceId);
+      this.player.source = __audioURI;
+      this.player.refresh();
+      break;
+    case broadin.MIDDELWARES()['ANDROID']:
+      this.player.unBindPlayerInstance();
+      this.player.bindPlayerInstance(this.instanceId);
+      this.player.dataSource(__audioURI);
+      this.player.refreshSource();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      var result = this.player.play(__audioURI);
+      while (!result) {
+        result = this.player.play(__audioURI);
+      }
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      MP3.play(__audioURI);
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      var tmpMediaInfo = '[{mediaUrl:"' + __audioURI + '",mediaCode:"code1",mediaType:2,audioType:1,videoType:1,streamType:1,drmType:1,fingerPrint:0,copyProtection:1,allowTrickmode:1,startTime:0,endTime:0,entryID:"entry1"}]';
+      this.player.setSingleMedia(tmpMediaInfo);
+      this.player.playFromStart();
+      break;
+    }
+  },
+  stop: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      this.player.stop();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      MP3.close();
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      this.player.unBindPlayerInstance();
+      if (this.isStopped === false) { this.isStopped = true; }
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      this.player.stop();
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      MP3.stop();
+      break;
+    }
+  },
+  pause: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      this.player.pause();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+    case broadin.MIDDELWARES()['DVN']:
+      MP3.pause();
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      this.player.pause(0);
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      this.player.pause();
+      break;
+    }
+  },
+  resume: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      this.player.resume();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+    case broadin.MIDDELWARES()['DVN']:
+      MP3.resume();
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      this.player.play();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      this.player.resume();
+      break;
+    }
+  },
+  getPlayedTime: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      return this.player.getCurrentPlayTime();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      return MP3.playedTime;
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      return this.player.currentPoint;
+      break;
+    case broadin.MIDDELWARES()['ANDROID']:
+      return this.player.currentPoint();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      return Math.round(this.player.getCurrentTime() / 1000);
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      return Math.round(MP3.getCurrentTime() / 1000);
+      break;
+    }
+  },
+  getDuration: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      return this.player.getMediaDuration();  //延时取该返回值
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      return MP3.duration;
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var splitter = this.player.getMediaDuration().split(':');
+      return splitter[0] * 3600 + splitter[1] * 60 + parseInt(splitter[2], 10);
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      return Math.round(this.player.getTotalTime() / 1000);
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      return Math.round(MP3.getDuration() / 1000);
+      break;
+    }
+  },
+  release: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      if (this.instanceId !== -1) {
+        this.player.stop();
+        this.player.releaseMediaPlayer(this.instanceId);
+      }
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      MP3.close();
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      if (this.isStopped) {
+        this.player.bindPlayerInstance(this.instanceId);
+      }
+      if (this.player != null) {
+        this.player.releasePlayerInstance();
+      }
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      this.player && this.player.stop();
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      MP3.stop();
+      break;
+    }
+    this.instanceId = -1;
+    this.isStopped = false;
+    this.isInitialized = false;
+  }
+};
+broadin.utils = {
+  setGlobalVar: function (__key, __value) {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      Utility.setEnv(__key, __value + '');
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+      iPanel.setGlobalVar(__key, __value + '');
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      SysSetting.setEnv(__key, __value + '');
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      globalvar.set(__key, __value + '');
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      var global = new Global(__key);
+      global.value = __value + '';
+      break;
+    }
+  },
+  getGlobalVar: function (__key) {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      return Utility.getEnv(__key) || '';
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+      return iPanel.getGlobalVar(__key) || '';
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      return SysSetting.getEnv(__key) || '';
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      return globalvar.get(__key) || '';
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      var global = new Global(__key);
+      return global.value === 'default' ? '' : global.value;
+      break;
+    }
+  },
+  setVolume: function (__value) {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['CNTV']:
+    case broadin.MIDDELWARES()['JILIN']:
+      var bMp3 = broadin.mp3;
+      if (!bMp3.isInitialized) { bMp3.initialize(); }
+      bMp3.player.setVolume(__value);
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      media.sound.value = parseInt(__value, 10);
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      DataAccess.setInfo('MediaSetting', 'OutputVolumn', __value + '');
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      MP3.setVolume(__value);
+      break;
+    }
+  },
+  getVolume: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['CNTV']:
+    case broadin.MIDDELWARES()['JILIN']:
+      var bMp3 = broadin.mp3;
+      if (!bMp3.isInitialized) { bMp3.initialize(); }
+      return bMp3.player.getVolume();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      return parseInt(media.sound.value, 10);
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      return parseInt(DataAccess.getInfo('MediaSetting', 'OutputVolumn'), 10);
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      return parseInt(MP3.getVolume(), 10);
+      break;
+    }
+  },
+  isMute: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      var bMp3 = broadin.mp3;
+      if (!bMp3.isInitialized) { bMp3.initialize(); }
+      return !!bMp3.player.getMuteFlag();
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      return !!media.sound.isMute;
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var bMp3 = broadin.mp3;
+      if (!bMp3.isInitialized) { bMp3.initialize(); }
+      return !!bMp3.player.getMute();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      var bMp3 = broadin.mp3;
+      if (!bMp3.isInitialized) { bMp3.initialize(); }
+      return bMp3.player.isMute();
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      //logic codes goes here
+      break;
+    }
+  },
+  toggleMute: function () {
+    var isMuted = this.isMute();
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['HUAWEI']:
+    case broadin.MIDDELWARES()['JILIN']:
+      isMuted ? broadin.mp3.player.setMuteFlag(0) : broadin.mp3.player.setMuteFlag(1);
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      isMuted ? media.sound.resume() : media.sound.mute();
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      isMuted ? broadin.mp3.player.audioUnmute() : broadin.mp3.player.audioMute();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      isMuted ? broadin.mp3.player.setMute(false) : broadin.mp3.player.setMute(true);
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      //logic codes goes here
+      break;
+    }
+    return !isMuted;
+  },
+  standby: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      DVB.standby(1);
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      iPanel.enterStandby();
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      SysSetting.standby();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      //logic codes goes here
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      System.setPowerOffDurationTime('00:01');
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      //logic codes goes here
+      break;
+    }
+  },
+  openMenu: function () {
+    broadin.aux && broadin.aux.openMenuAdapter ? arguments[0] === true ? arguments[1] && typeof(arguments[1]) === 'string' ? broadin.aux.openMenuAdapter(arguments[1]) : broadin.aux.openMenuAdapter() : this.execOpenMenu() : this.execOpenMenu();
+  },
+  execOpenMenu: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      window.location.href = Utility.getEnv('ROOT_PATH') + 'index.htm';
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      window.location.href = 'ui://index.htm';
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var portalAddr = SysSetting.getEnv('PORTAL_ADDR');
+      window.location.href = portalAddr.indexOf('index.html') > -1 ? portalAddr : portalAddr + '/index.html';
+      break;
+    case broadin.MIDDELWARES()['ANDROID']:
+      SysSetting.menu();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      window.location.href = '../index.htm';
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      //window.location.href = '';
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      window.location.href = Authentication.CTCGetConfig('ntvuseraccount');
+      break;
+    }
+  },
+  watchTV: function () {
+    broadin.aux && broadin.aux.watchTVAdapter ? arguments[0] === true ? broadin.aux.watchTVAdapter() : this.execWatchTV() : this.execWatchTV();
+  },
+  execWatchTV: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      window.location.href = Utility.getEnv('ROOT_PATH') + 'play/play.htm';
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      var user = users.currentUser;
+      var channel = user.getOffChannel(1);
+      if (typeof(channel) !== 'undefined') {
+        channel.open();
+      } else {
+        window.location.href = 'ui://play.html';
+      }
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var portalAddr = SysSetting.getEnv('PORTAL_ADDR');
+      if (portalAddr.indexOf('index.html') > -1) {
+        window.location.href = portalAddr.slice(0, portalAddr.length - 10) + 'html/playTv.v2.html?groupID=10002';
+      } else {
+        window.location.href = portalAddr + '/html/playTv.v2.html?groupID=10002';
+      }
+      break;
+    case broadin.MIDDELWARES()['ANDROID']:
+      SysSetting.exit();
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      window.location.href = '../index.htm';
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      //logic codes goes here
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      //logic codes goes here
+      break;
+    }
+  },
+  debug: function (__message) {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+    case broadin.MIDDELWARES()['JILIN']:
+      Utility.println(__message + '');
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      iPanel.debug(__message + '');
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      console.debug(__message + '');
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      //logic codes goes here
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      //logic codes goes here
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      //logic codes goes here
+      break;
+    }
+  },
+  getCardNum: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['COSHIP']:
+      return hardware.smartCard.serialNumber;
+      break;
+    case broadin.MIDDELWARES()['JILIN']:
+      return CA.serialNumber;
+      break;
+    case broadin.MIDDELWARES()['iPANEL']:
+      return CA.card.serialNumber;
+      break;
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      return CA.icNo;
+      break;
+    case broadin.MIDDELWARES()['CNTV']:
+      //logic codes goes here
+      break;
+    case broadin.MIDDELWARES()['DVN']:
+      //logic codes goes here
+      break;
+    case broadin.MIDDELWARES()['HUAWEI']:
+      //logic codes goes here
+      break;
+    }
+  },
+  openEPG: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var portalAddr = SysSetting.getEnv('PORTAL_ADDR');
+      if (portalAddr.indexOf('index.html') > -1) {
+        window.location.href = portalAddr.slice(0, portalAddr.length - 10) + 'html/EPG.v2.html';
+      } else {
+        window.location.href = portalAddr + '/html/EPG.v2.html';
+      }
+      break;
+    }
+  },
+  openEmailManager: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var portalAddr = SysSetting.getEnv('PORTAL_ADDR');
+      if (portalAddr.indexOf('index.html') > -1) {
+        window.location.href = portalAddr.slice(0, portalAddr.length - 10) + 'html/email_manager.v2.html';
+      } else {
+        window.location.href = portalAddr + '/html/email_manager.v2.html';
+      }
+      break;
+    }
+  },
+  openFavor: function () {
+    switch (__mwPlatform__) {
+    case broadin.MIDDELWARES()['SUMA_VISION']:
+    case broadin.MIDDELWARES()['ANDROID']:
+    case broadin.MIDDELWARES()['GUANGDONG']:
+      var portalAddr = SysSetting.getEnv('PORTAL_ADDR');
+      if (portalAddr.indexOf('index.html') > -1) {
+        window.location.href = portalAddr.slice(0, portalAddr.length - 10) + 'html/ChanList.v2.html?groupID=10001';
+      } else {
+        window.location.href = portalAddr + '/html/ChanList.v2.html?groupID=10001';
+      }
+      break;
+    }
+  },
+  exitToPortal: function () {
+    window.location.href = '../index.htm';
+  }
+};
+broadin.aux = {
+  openMenuAdapter: function () {
+    if (typeof(popBoxUtil) === 'object') {
+      popBoxUtil.show(arguments[0] || '是否退出？', broadin.utils.execOpenMenu);
+    } else {
+      broadin.utils.execOpenMenu();
+    }
+  },
+  watchTVAdapter: function () {
+    if (typeof(popBoxUtil) === 'object') {
+      popBoxUtil.show('是否退出到电视频道？', broadin.utils.execWatchTV);
+    } else {
+      broadin.utils.execWatchTV();
+    }
+  }
+};
+/*========================= broadin namespace end =========================*/
+
+function pageBack() {
+  window.location.href = 'main.htm?mode=npc';
+}
+</script>
+</head>
+<body bgcolor="#000000" leftmargin="0" topmargin="0" onload="init()" style="width:1280px; height:720px; visibility:hidden; overflow:hidden;">
+
+<!-- 背景 开始 -->
+<div style="position:absolute; width:1280px; height:720px; background:url(images/bg.png) no-repeat; left:0px; top:0px;">
+  <img src="images/shadow.png" width="1280" height="720" style="position:absolute; left:0px; top:0px;" />
+  <img src="images/cover4_0.png" width="1280" height="720" style="position:absolute; left:0px; top:0px;" />
+  <img src="images/cover4_1.png" width="1239" height="701" style="position:absolute; left:20px; top:10px;" />
+</div>
+<!-- 背景 结束 -->
+
+<!-- 左侧角色UI 开始 -->
+<div id="leftUI" style="position: absolute; width: 258px; height: 620px; left: 51px; top: 47px;">
+  <div style="position: absolute; width: 164px; height: 164px; left: 26px; top: 2px;">
+    <img id="playerTurn" src="images/shared/p1_turn.png" width="176" height="176" style="left: -7px; top: -7px; visibility:hidden;" />
+    <img src="images/fight/role_pos_bg.png" width="164" height="164" style="left: 0px; top: 0px;" />
+    <img id="playerIcon" src="images/shared/role_icon_0.jpg" width="160" height="160" style="left:1px; top:1px;" />
+    <img src="images/fight/role_pos_title_bg.png" width="160" height="32" style="left: 1px; top: 129px;" />
+    <img src="images/fight/p1.png" width="32" height="20" style="left:5px; top:135px;" />
+    <img id="playerReady" src="images/fight/turn_orange.png" width="45" height="47" style="left: 180px; top: 4px; visibility:hidden;" />
+    <img id="playerReadyFirst" src="images/fight/turn_orange_first.png" width="45" height="47" style="left: 180px; top: 4px; visibility:hidden;" />
+    <div id="playerName" style="position:absolute; width:115px; height:32px; line-height:32px; color:#84848b; font-size:24px; left:45px; top:129px;"></div>
+  </div>
+
+  <div style="position: absolute; background: url(images/fight/round_time_bg.png) no-repeat; width: 258px; height: 102px; top: 256px; left: 0px;">
+    <img id="t0_0" src="images/nums/rtNum0.png" style="position: absolute; width: 34px; height: 59px; top: 20px; left: 23px;">
+    <img id="t0_1" src="images/nums/rtNum0.png" style="position: absolute; width: 34px; height: 59px; top: 20px; left: 68px;">
+    <img src="images/nums/rtNumColon.png" style="position: absolute; width: 9px; height: 29px; top: 35px; left: 124px;">
+    <img id="t0_2" src="images/nums/rtNum0.png" style="position: absolute; width: 34px; height: 59px; top: 20px; left: 153px;">
+    <img id="t0_3" src="images/nums/rtNum0.png" style="position: absolute; width: 34px; height: 59px; top: 20px; left: 199px;">
+  </div>
+
+  <div style="position: absolute; width: 164px; height: 164px; left: 26px; top: 451px;">
+    <img id="npcTurn" src="images/shared/p2_turn.png" width="176" height="176" style="left: -7px; top: -7px; visibility:hidden;" />
+    <img src="images/fight/role_pos_bg.png" width="164" height="164" style="left: 0px; top: 0px;" />
+    <img id="npcIcon" src="images/shared/npc.png" width="160" height="160" style="left:1px; top:4px;" />
+    <img src="images/fight/role_pos_title_bg.png" width="160" height="32" style="left: 1px; top: 129px;" />
+    <img src="images/fight/p2.png" width="32" height="20" style="left:5px; top:135px;" />
+    <img id="npcReady" src="images/fight/turn_blue.png" width="45" height="47" style="left: 180px; top: 4px; visibility:hidden;" />
+    <img id="npcReadyFirst" src="images/fight/turn_blue_first.png" width="45" height="47" style="left: 180px; top: 4px; visibility:hidden;" />
+    <div id="npcName" style="position:absolute; width:115px; height:32px; line-height:32px; color:#84848b; font-size:24px; left:45px; top:129px;">电脑</div>
+  </div>
+</div>
+
+<div style="position: absolute; background: url(images/fight/fight_count_bg.png) no-repeat; width: 250px; height: 44px; top: 223px; left: 55px;">
+  <div id="playerWinCnt" style="position: absolute; width: 43px; height: 22px; left: 29px; top: 11px; text-align:center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+  <div id="playerLoseCnt" style="position: absolute; width: 43px; height: 22px; left: 118px; top: 11px; text-align: center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+  <div id="playerDrawCnt" style="position: absolute; width: 43px; height: 22px; left: 206px; top: 11px; text-align: center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+</div>
+
+<div style="position: absolute; background: url(images/fight/fight_count_bg.png) no-repeat; width: 250px; height: 44px; top: 441px; left: 55px;">
+  <div id="npcWinCnt" style="position: absolute; width: 43px; height: 22px; left: 29px; top: 11px; text-align:center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+  <div id="npcLoseCnt" style="position: absolute; width: 43px; height: 22px; left: 118px; top: 11px; text-align: center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+  <div id="npcDrawCnt" style="position: absolute; width: 43px; height: 22px; left: 206px; top: 11px; text-align: center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+</div>
+<!-- 左侧角色UI 结束 -->
+
+<!-- 中间主界面 开始 -->
+<div id="mainUI" style="position: absolute; width: 630px; height: 626px; background: #131315 no-repeat; left: 321px; top: 43px;">
+  <img src="images/fight/vertical_divider.png" width="404" height="84" style="left:114px; top:46px;" />
+  <div id="piecesContainer" style="position:absolute; width: 630px; height: 626px; left:0px; top:0px;"></div>
+
+  <img id="gridFrame" src="images/fight/grid.png" width="630" height="626" style="left:0px; top:0px; -webkit-transition-duration:10ms; z-index:20;" />
+  <img id="gridBevel" src="images/fight/grid_bevel.png" width="630" height="626" style="left:0px; top:0px; z-index:20; opacity:1;" />
+  <div id="lblStateTips" style="position: absolute; width: 424px; height: 40px; line-height: 40px; font-size:28px; color: #A6A6A6; text-align: center; z-index: 20; left: 105px; top: 3px;"></div>
+  <img id="fbRow" src="images/fight/row_fb.png" width="89" height="98" style="left: 272px; top: 39px; z-index: 20; opacity:1;" />
+  <div id="haloContainer" style="position:absolute; width: 630px; height: 626px; left:0px; top:0px; z-index:20;"></div>
+
+  <!-- 文字提示 开始 -->
+  <div id="popTextTipsContainer" style="position: absolute; background: url(images/fight/pop_tips_bg.png) no-repeat; width: 537px; height: 112px; left: 46px; top: 300px; opacity: 0; -webkit-transition-duration: 200ms; z-index: 30;">
+    <div style="position: absolute; width: 499px; height: 80px; left: 19px; top: 16px;">
+      <table width="499" height="80" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td id="popTextContent" align="center" valign="middle" style="font-size:28px; color:#CCCCCC;"></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <!-- 文字提示 结束 -->
+</div>
+<!-- 中间主界面 结束 -->
+
+<!-- 右侧悔棋、计时UI 开始 -->
+<!--<div style="position: absolute; background: url(images/fight/undo_count_bg.png) no-repeat; width: 221px; height: 47px; left: 989px; top: 199px;">
+  <div id="playerUndoCnt" style="position: absolute; width: 43px; height: 22px; left: 48px; top: 12px; text-align: center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+  <div id="npcUndoCnt" style="position: absolute; width: 43px; height: 22px; left: 177px; top: 12px; text-align: center;">
+    <img src="images/nums/b1Num0.png" width="17" height="22" />
+  </div>
+</div>  -->
+
+<div id="inningTimeUI" style="position: absolute; background: url(images/fight/inning_time_bg.png) no-repeat; width: 258px; height: 167px; left: 969px; top: 250px;">
+  <div style="position: absolute; width: 242px; height: 145px; left: 5px; top: 9px;">
+    <img src="images/nums/ctdTxt.png" style="width:109px; height:59px; top:8px; left:19px;">
+    <img id="r1" src="images/nums/ctdNum0.png" style="width:34px; height:59px; top:8px; left:149px;">
+    <img id="r0" src="images/nums/ctdNum1.png" style="width:34px; height:59px; top:8px; left:195px;">
+
+    <img id="t1_0" src="images/nums/ctdNum0.png" style="width:34px; height:59px; top:77px; left:19px;">
+    <img id="t1_1" src="images/nums/ctdNum0.png" style="width:34px; height:59px; top:77px; left:64px;">
+    <img src="images/nums/ctdColon.png" style=" width:9px; height:29px; top:92px; left:120px;">
+    <img id="t1_2" src="images/nums/ctdNum0.png" style="width:34px; height:59px; top:77px; left:149px;">
+    <img id="t1_3" src="images/nums/ctdNum0.png" style="width:34px; height:59px; top:77px; left:195px;">
+  </div>
+</div>
+<!-- 右侧悔棋、计时UI 结束 -->
+
+<!-- 命令按钮 开始 -->
+<img id="cmd0" src="images/fight/undo_blur.png" width="263" height="100" style="position: absolute; left: 957px; top: 87px;" />
+<img id="cmd1" src="images/fight/restart_game_blur.png" width="263" height="100" style="position: absolute; left: 957px; top: 479px;" />
+<img id="cmd2" src="images/fight/end_fight_blur.png" width="263" height="100" style="position: absolute; left: 957px; top: 574px;" />
+<!-- 命令按钮 结束 -->
+
+<!-- 光泽效果 开始 -->
+<div style="position:absolute; width:1280px; height:720px; left:0px; top:0px;">
+  <img src="images/polish0.png" width="683" height="77" style="position: absolute; left: 474px; top: 28px;" />
+  <img src="images/polish1.png" width="632" height="335" style="position: absolute; left: 605px; top: 320px;" />
+  <img src="images/polish2.png" width="322" height="656" style="position: absolute; left: 41px; top: 28px;" />
+  <img src="images/polish3.png" width="564" height="10" style="position: absolute; left: 140px; top: 19px;" />
+</div>
+<!-- 光泽效果 结束 -->
+
+<!-- 游戏动画标签 开始 -->
+<div id="gameStartElement" style="position:absolute; width:469px; height:270px; background:url(images/perf/game_begin_icon.png) no-repeat center center; left:405px; top:260px; z-index:100; opacity:0;"></div>
+<div id="gameOverElement" style="position:absolute; width:469px; height:270px; background:url(images/transparent.gif) no-repeat center center; left:405px; top:160px; z-index:100; opacity:0;"></div>
+<!-- 游戏结局动画标签 结束 -->
+
+<!-- 游戏弹出框 开始 -->
+<div id="gamePopBox" style="position:absolute; width:501px; height:276px; background:url(images/popbox/gamePopBg.png) no-repeat; left:391px; top:218px; z-index:110; visibility:hidden;">
+  <div id="gamePopTitle" style="position:absolute; width:471px; height:54px; left:16px; top:15px; font-size:36px; font-weight:bold; color:#000000; text-align:center"></div>
+  <div id="gamePopTip" style="position:absolute; width:471px; height:102px; left:16px; top:73px; font-size:30px;color:#925712; text-align:center"></div>
+  <img id="gamePopBtn0" src="images/transparent.gif" style="position:absolute; width:192px; height:60px; left:49px; top:185px;"
+  />
+  <img id="gamePopBtn1" src="images/transparent.gif" style="position:absolute; width:192px; height:60px; left:256px; top:185px;"
+  />
+  <img id="gamePopBtnFoc" src="images/popbox/gamePopBtnFoc.png" style="position:absolute; width:205px; height:72px; left:42px; top:179px;"
+  />
+</div>
+<!-- 游戏弹出框 结束 -->
+
+<!-- 预加载图片 开始 -->
+<div style="position:absolute; width:0px; height:0px; left:0px; top:720px;">
+  <img src="images/fight/halo_orange.png" width="0" height="0" />
+  <img src="images/fight/halo_blue.png" width="0" height="0" />
+  <img src="images/fight/orange.png" width="0" height="0" />
+  <img src="images/fight/blue.png" width="0" height="0" />
+  <img src="images/perf/draw_icon.png" width="0" height="0" />
+
+  <img src="images/popbox/gameOverBtn0_0.png" width="0" height="0" />
+  <img src="images/popbox/gameOverBtn0_1.png" width="0" height="0" />
+  <img src="images/popbox/gameOverBtn1_0.png" width="0" height="0" />
+  <img src="images/popbox/gameOverBtn1_1.png" width="0" height="0" />
+  <img src="images/popbox/gamePopOverBtn0_0.png" width="0" height="0" />
+  <img src="images/popbox/gamePopOverBtn0_1.png" width="0" height="0" />
+  <img src="images/popbox/gamePopOverBtn1_0.png" width="0" height="0" />
+  <img src="images/popbox/gamePopOverBtn1_1.png" width="0" height="0" />
+</div>
+<!-- 预加载图片 结束 -->
+</body>
+</html>
